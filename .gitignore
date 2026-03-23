@@ -1,0 +1,40 @@
+# ===== Secrets & API Keys =====
+tokens
+.env
+.env.local
+.env.production
+*.key
+*.pem
+
+# ===== Python =====
+__pycache__/
+*.py[cod]
+*$py.class
+venv/
+.venv/
+*.egg-info/
+dist/
+build/
+
+# ===== Node.js =====
+node_modules/
+.next/
+out/
+npm-debug.log*
+
+# ===== IDE =====
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# ===== OS =====
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# ===== Test outputs =====
+db/test_output.txt
+db/render_output.txt
+db/test_render.py
+db/test_connection.py
