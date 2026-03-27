@@ -1,10 +1,12 @@
 'use client';
 
 import { useState } from 'react';
+import { useRouter } from 'next/navigation';
 import styles from './login.module.css';
 import Link from 'next/link';
 
 export default function LoginPage() {
+  const router = useRouter();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
@@ -32,8 +34,8 @@ export default function LoginPage() {
         throw new Error(data.detail || 'Failed to login');
       }
       
-      // Success. You would use a router to redirect normally
-      alert('Login successful! Welcome to Nidhi Bank.');
+      // Redirect to dashboard
+      router.push('/dashboard');
     } catch (err) {
       setError(err.message);
     } finally {
