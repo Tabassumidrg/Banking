@@ -16,6 +16,18 @@ CREATE TABLE IF NOT EXISTS users (
     email VARCHAR(255) UNIQUE NOT NULL,
     mobile_number VARCHAR(20) UNIQUE NOT NULL,
     password_hash TEXT NOT NULL,
+    balance DECIMAL(12,2) DEFAULT 1000.00,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE IF NOT EXISTS transactions (
+    id SERIAL PRIMARY KEY,
+    sender_id INTEGER REFERENCES users(id),
+    receiver_id INTEGER REFERENCES users(id),
+    amount DECIMAL(12,2) NOT NULL,
+    type VARCHAR(20) NOT NULL,
+    description TEXT,
+    status VARCHAR(20) DEFAULT 'success',
     created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 );
 """

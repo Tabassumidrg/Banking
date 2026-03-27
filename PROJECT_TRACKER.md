@@ -61,6 +61,7 @@ Banking/
 | 2026-03-27 | Fixed Deployments | Resolved Render `ModuleNotFoundError` by correcting `render.yaml` start command syntax (`$PORT`). Resolved Vercel 404 by fixing a missing CSS import causing `next build` to fail, and modified `redeploy.py` to correctly rely on Vercel's Git trigger rather than the conflicting file upload API. |
 | 2026-03-27 | Fixed CORS Errors | Identified that unhandled `psycopg2` exceptions (e.g., from missing DB tables) bypassed FastAPI's CORS middleware. Added explicit exception handling in `main.py` routing to return structured 500 JSON errors with proper `Access-Control-Allow-Origin` headers. |
 | 2026-03-27 | Fixed Password Hashing | Switched from `passlib` to direct `bcrypt` library usage to resolve the `ValueError: password cannot be longer than 72 bytes`. This standardizes the hashing process and avoids library-internal length checks that were causing false failures for short passwords. |
+| 2026-03-27 | Dashboard & Redirect | Created a premium, dark-themed dashboard at `/dashboard` and updated the login flow to automatically redirect users upon successful authentication, replacing the old success alert. |
 
 ---
 
