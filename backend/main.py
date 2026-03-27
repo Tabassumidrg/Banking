@@ -88,10 +88,13 @@ def signin(user: UserLogin):
         cur.execute("SELECT id, email, password_hash FROM users WHERE email = %s", (user.email,))
         db_user = cur.fetchone()
         
+        if not db_user:
+            raise HTTPException(status_code=401, detail="Invalid email or password")
+            
         password_bytes = user.password.encode('utf-8')
         db_hash_bytes = db_user["password_hash"].encode('utf-8')
         
-        if not db_user or not bcrypt.checkpw(password_bytes, db_hash_bytes):
+        if not bcrypt.checkpw(password_bytes, db_hash_bytes):
             raise HTTPException(status_code=401, detail="Invalid email or password")
             
         return {"message": "Login successful", "user": {"id": db_user["id"], "email": db_user["email"]}}
