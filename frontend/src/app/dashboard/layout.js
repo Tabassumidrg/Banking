@@ -17,6 +17,7 @@ function DashboardContent({ children }) {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [isNotifOpen, setIsNotifOpen] = useState(false);
   const [isProfileOpen, setIsProfileOpen] = useState(false);
+  const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
   const [user, setUser] = useState(null);
   const [searchQuery, setSearchQuery] = useState('');
   
@@ -27,9 +28,9 @@ function DashboardContent({ children }) {
   useEffect(() => {
     const storedUser = localStorage.getItem('user');
     if (storedUser) {
-      setUser(JSON.parse(storedUser));
+      const parsedUser = JSON.parse(storedUser);
+      setUser(parsedUser);
     }
-    // Sync local search query with URL on load
     const q = searchParams.get('q');
     if (q) setSearchQuery(q);
   }, [searchParams]);
@@ -40,7 +41,6 @@ function DashboardContent({ children }) {
     { id: 3, title: 'System Update', msg: 'Dashboard v1.2 is now live with Users view', time: 'Yesterday' }
   ];
 
-  // Derive mock account info
   const mockAccNo = user ? `8899${user.id.toString().padStart(8, '0')}` : '---';
   const mockIFSC = 'NB0001';
 
@@ -53,14 +53,9 @@ function DashboardContent({ children }) {
   const handleSearchChange = (e) => {
     const val = e.target.value;
     setSearchQuery(val);
-    
-    // Update URL query params
     const params = new URLSearchParams(searchParams);
-    if (val) {
-      params.set('q', val);
-    } else {
-      params.delete('q');
-    }
+    if (val) params.set('q', val);
+    else params.delete('q');
     router.replace(`${pathname}?${params.toString()}`);
   };
 
@@ -78,6 +73,11 @@ function DashboardContent({ children }) {
     setIsNotifOpen(false);
   };
 
+  const openProfileModal = () => {
+    setIsProfileModalOpen(true);
+    setIsProfileOpen(false);
+  };
+
   useEffect(() => {
     const closeTrays = () => {
       setIsNotifOpen(false);
@@ -89,12 +89,47 @@ function DashboardContent({ children }) {
 
   return (
     <div className={styles.wrapper}>
-      {isSidebarOpen && (
+      {/* Overlay for mobile sidebar AND Profile Modal */}
+      {(isSidebarOpen || isProfileModalOpen) && (
         <div 
           className={styles.overlay} 
-          onClick={() => setIsSidebarOpen(false)}
-          style={{ position: 'fixed', inset: 0, backgroundColor: 'rgba(0,0,0,0.5)', zIndex: 999 }}
+          onClick={() => { setIsSidebarOpen(false); setIsProfileModalOpen(false); }}
         ></div>
+      )}
+
+      {/* Profile Detail Modal */}
+      {isProfileModalOpen && (
+        <div className={styles.modalContent} onClick={(e) => e.stopPropagation()}>
+          <div className={styles.modalHeader}>
+            <h3>Account Details</h3>
+            <button className={styles.closeBtn} onClick={() => setIsProfileModalOpen(false)}>&times;</button>
+          </div>
+          <div className={styles.modalBody}>
+            <div className={styles.detailRow}>
+              <span>Email Address</span>
+              <strong>{user?.email}</strong>
+            </div>
+            <div className={styles.detailRow}>
+              <span>Mobile Number</span>
+              <strong>{user?.mobile_number || '+91 9876543210'}</strong>
+            </div>
+            <div className={styles.detailRow}>
+              <span>Account Number</span>
+              <strong>{mockAccNo}</strong>
+            </div>
+            <div className={styles.detailRow}>
+              <span>IFSC Code</span>
+              <strong>{mockIFSC}</strong>
+            </div>
+            <div className={styles.detailRow}>
+              <span>Account Status</span>
+              <span className={styles.statusBadge}>Verified</span>
+            </div>
+          </div>
+          <div className={styles.modalFooter}>
+            <button className={styles.primaryBtn} onClick={() => setIsProfileModalOpen(false)}>Close</button>
+          </div>
+        </div>
       )}
 
       <aside className={`${styles.sidebar} ${isSidebarOpen ? styles.sidebarOpen : ''}`}>
@@ -179,11 +214,10 @@ function DashboardContent({ children }) {
                   <div className={styles.profileHeader}>
                     <span className={styles.profileEmail}>{user?.email || 'User Account'}</span>
                     <span className={styles.profileDetail}>Account: {mockAccNo}</span>
-                    <span className={styles.profileDetail}>IFSC: {mockIFSC}</span>
                   </div>
                   <div className={styles.trayBody}>
-                    <div className={styles.trayItem}>My Profile</div>
-                    <div className={styles.trayItem}>Account Settings</div>
+                    <div className={styles.trayItem} onClick={openProfileModal}>My Profile</div>
+                    <div className={styles.trayItem} onClick={() => alert('Settings feature coming soon!')}>Account Settings</div>
                     <div className={`${styles.trayItem} ${styles.logoutItem}`} onClick={handleLogout}>
                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
                        <span>Logout</span>
