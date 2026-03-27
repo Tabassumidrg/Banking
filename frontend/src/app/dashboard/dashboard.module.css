@@ -1,21 +1,21 @@
 :root {
   --sidebar-width: 260px;
   --header-height: 70px;
-  --bg-dark: #0a0b0d;
-  --bg-sidebar: #111217;
+  --bg-dark: #050608;
+  --bg-sidebar: rgba(13, 14, 18, 0.95);
   --accent-primary: #6366f1;
   --accent-secondary: #8b5cf6;
   --text-main: #ffffff;
   --text-muted: #94a3b8;
   --border-color: rgba(255, 255, 255, 0.08);
-  --glass-bg: rgba(255, 255, 255, 0.03);
+  --glass-bg: rgba(255, 255, 255, 0.02);
   --glass-border: rgba(255, 255, 255, 0.05);
 }
 
 .wrapper {
   display: flex;
   min-height: 100vh;
-  background-color: var(--bg-dark);
+  background: radial-gradient(circle at top right, #0d1117, #050608);
   color: var(--text-main);
   font-family: 'Inter', sans-serif;
 }
@@ -122,8 +122,8 @@
   align-items: center;
   justify-content: space-between;
   border-bottom: 1px solid var(--border-color);
-  background-color: rgba(10, 11, 13, 0.8);
-  backdrop-filter: blur(10px);
+  background-color: rgba(5, 6, 8, 0.7);
+  backdrop-filter: blur(20px);
   position: sticky;
   top: 0;
   z-index: 100;
@@ -320,12 +320,14 @@
 }
 
 .statCard {
-  background: var(--glass-bg);
-  border: 1px solid var(--glass-border);
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  backdrop-filter: blur(10px);
   padding: 25px;
-  border-radius: 20px;
+  border-radius: 24px;
   position: relative;
   overflow: hidden;
+  transition: transform 0.3s ease;
 }
 
 .statCard::before {
@@ -358,10 +360,12 @@
 }
 
 .section {
-  background: var(--glass-bg);
-  border: 1px solid var(--glass-border);
-  border-radius: 24px;
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  backdrop-filter: blur(12px);
+  border-radius: 28px;
   padding: 30px;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.1);
 }
 
 .sectionTitle {

@@ -16,6 +16,7 @@
   font-size: 28px;
   font-weight: 700;
   margin-bottom: 4px;
+  color: white;
 }
 
 .subtitle {
@@ -31,7 +32,8 @@
 
 .section {
   background: rgba(255, 255, 255, 0.02);
-  border: 1px solid var(--border-color);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  backdrop-filter: blur(10px);
   border-radius: 20px;
   padding: 30px;
 }
@@ -179,7 +181,6 @@ input:checked + .slider:before {
 .activityList {
   display: flex;
   flex-direction: column;
-  gap: 20px;
 }
 
 .activityItem {
