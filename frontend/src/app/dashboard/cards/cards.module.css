@@ -1,0 +1,326 @@
+.container {
+  padding: 20px;
+  animation: fadeIn 0.5s ease;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 40px;
+  flex-wrap: wrap;
+  gap: 20px;
+}
+
+.title {
+  font-size: 28px;
+  font-weight: 700;
+  margin-bottom: 4px;
+}
+
+.subtitle {
+  color: #94a3b8;
+  font-size: 15px;
+}
+
+.addCardBtn {
+  background: rgba(99, 102, 241, 0.1);
+  color: #6366f1;
+  border: 1px dashed #6366f1;
+  padding: 10px 20px;
+  border-radius: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.addCardBtn:hover {
+  background: #6366f1;
+  color: white;
+  border-style: solid;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 40px;
+}
+
+.virtualCard {
+  aspect-ratio: 1.586/1;
+  background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 20px;
+  padding: 30px;
+  position: relative;
+  overflow: hidden;
+  box-shadow: 0 15px 35px rgba(0,0,0,0.4);
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  transition: all 0.5s ease;
+}
+
+.virtualCard::before {
+  content: '';
+  position: absolute;
+  top: -50%;
+  left: -50%;
+  width: 200%;
+  height: 200%;
+  background: radial-gradient(circle, rgba(99, 102, 241, 0.1) 0%, transparent 70%);
+  z-index: 1;
+}
+
+.frozen {
+  filter: grayscale(1) contrast(0.8);
+  opacity: 0.7;
+}
+
+.frozen::after {
+  content: 'FROZEN';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%) rotate(-15deg);
+  font-size: 48px;
+  font-weight: 900;
+  color: rgba(255, 255, 255, 0.1);
+  letter-spacing: 15px;
+  z-index: 2;
+}
+
+.cardHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  position: relative;
+  z-index: 2;
+}
+
+.bankName {
+  font-size: 18px;
+  font-weight: 700;
+  letter-spacing: 1px;
+}
+
+.chip {
+  width: 45px;
+  height: 35px;
+  background: linear-gradient(135deg, #fde047 0%, #eab308 100%);
+  border-radius: 6px;
+  position: relative;
+}
+
+.chip::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 0;
+  width: 100%;
+  height: 1px;
+  background: rgba(0,0,0,0.1);
+}
+
+.cardInfo {
+  position: relative;
+  z-index: 2;
+}
+
+.cardNumber {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 22px;
+  letter-spacing: 2.5px;
+  margin-bottom: 25px;
+  word-spacing: 10px;
+}
+
+.cardMeta {
+  display: flex;
+  gap: 40px;
+}
+
+.metaItem span {
+  font-size: 9px;
+  color: #94a3b8;
+  display: block;
+  margin-bottom: 4px;
+}
+
+.metaItem .val {
+  font-size: 14px;
+  font-weight: 600;
+  letter-spacing: 1px;
+}
+
+.cardBrand {
+  position: absolute;
+  bottom: 30px;
+  right: 30px;
+  font-size: 24px;
+  font-weight: 800;
+  font-style: italic;
+  color: rgba(255, 255, 255, 0.3);
+  z-index: 2;
+}
+
+.cardActions {
+  display: flex;
+  gap: 15px;
+  margin-top: 30px;
+}
+
+.actionBtn {
+  flex: 1;
+  padding: 12px;
+  border-radius: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: white;
+}
+
+.actionBtn:hover {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.freeze {
+  color: #ef4444;
+  border-color: rgba(239, 68, 68, 0.3);
+}
+
+.unfreeze {
+  color: #10b981;
+  border-color: rgba(16, 185, 129, 0.3);
+}
+
+.settingsSection {
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid var(--border-color);
+  border-radius: 20px;
+  padding: 30px;
+}
+
+.sectionTitle {
+  font-size: 18px;
+  margin-bottom: 25px;
+}
+
+.settingItem {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+  padding-bottom: 20px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.settingItem:last-child {
+  border-bottom: none;
+}
+
+.settingName {
+  font-weight: 600;
+  font-size: 15px;
+}
+
+.settingDesc {
+  font-size: 12px;
+  color: #64748b;
+  margin-top: 2px;
+}
+
+.switch {
+  position: relative;
+  display: inline-block;
+  width: 44px;
+  height: 24px;
+}
+
+.switch input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.slider {
+  position: absolute;
+  cursor: pointer;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(255, 255, 255, 0.1);
+  transition: .4s;
+  border-radius: 34px;
+}
+
+.slider:before {
+  position: absolute;
+  content: "";
+  height: 18px;
+  width: 18px;
+  left: 3px;
+  bottom: 3px;
+  background-color: white;
+  transition: .4s;
+  border-radius: 50%;
+}
+
+input:checked + .slider {
+  background-color: #6366f1;
+}
+
+input:checked + .slider:before {
+  transform: translateX(20px);
+}
+
+.limitBox {
+  margin-top: 30px;
+}
+
+.limitHeader {
+  display: flex;
+  justify-content: space-between;
+  font-size: 13px;
+  margin-bottom: 10px;
+  color: #94a3b8;
+}
+
+.progressBar {
+  height: 8px;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.progressFill {
+  height: 100%;
+  background: linear-gradient(to right, #6366f1, #a855f7);
+}
+
+@media (max-width: 1024px) {
+  .grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 480px) {
+  .virtualCard {
+    padding: 20px;
+  }
+  .cardNumber {
+    font-size: 18px;
+    letter-spacing: 1.5px;
+  }
+  .cardMeta {
+    gap: 20px;
+  }
+}

@@ -143,14 +143,14 @@ function DashboardContent({ children }) {
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>
             <span>Overview</span>
           </Link>
-          <div className={styles.navLink}>
+          <Link href="/dashboard/security" className={pathname === '/dashboard/security' ? styles.navLinkActive : styles.navLink}>
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
             <span>Security</span>
-          </div>
-          <div className={styles.navLink}>
+          </Link>
+          <Link href="/dashboard/cards" className={pathname === '/dashboard/cards' ? styles.navLinkActive : styles.navLink}>
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="2" y="5" width="20" height="14" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/></svg>
             <span>My Cards</span>
-          </div>
+          </Link>
           <Link href="/dashboard/users" className={pathname === '/dashboard/users' ? styles.navLinkActive : styles.navLink}>
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
             <span>Users</span>
