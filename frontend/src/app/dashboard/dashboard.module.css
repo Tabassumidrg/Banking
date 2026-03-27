@@ -161,6 +161,18 @@
   cursor: pointer;
 }
 
+.badge {
+  position: absolute;
+  top: -2px;
+  right: -2px;
+  width: 10px;
+  height: 10px;
+  background-color: #ef4444;
+  border-radius: 50%;
+  border: 2px solid var(--bg-dark);
+  box-shadow: 0 0 10px rgba(239, 68, 68, 0.4);
+}
+
 .notifBadge {
   position: absolute;
   top: 0;
@@ -524,6 +536,11 @@
   color: var(--text-muted);
   cursor: pointer;
   transition: all 0.2s;
+}
+
+.itemNew {
+  background: rgba(99, 102, 241, 0.05) !important;
+  border-left: 3px solid var(--accent-primary);
 }
 
 .trayItem:hover {

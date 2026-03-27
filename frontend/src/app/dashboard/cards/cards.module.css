@@ -238,6 +238,20 @@
   border-color: rgba(16, 185, 129, 0.3);
 }
 
+.removeBtn {
+  color: #94a3b8;
+  font-size: 13px;
+  border: none !important;
+  background: none !important;
+  text-decoration: underline;
+  opacity: 0.6;
+}
+
+.removeBtn:hover {
+  color: #ef4444 !important;
+  opacity: 1;
+}
+
 .settingsSection {
   background: rgba(255, 255, 255, 0.02);
   border: 1px solid var(--border-color);

@@ -15,34 +15,55 @@ export default function CardsPage() {
       const parsedUser = JSON.parse(storedUser);
       setUser(parsedUser);
       
-      // Initialize with a default card based on user ID
-      const defaultCard = {
-        id: 1,
-        number: `4400 ${parsedUser.id.toString().padStart(4, '0')} ${parsedUser.id.toString().padStart(4, '0')} 9988`,
-        exp: '12/28',
-        cvv: '123',
-        brand: 'VISA',
-        isFrozen: false,
-        name: parsedUser.full_name || 'Nidhi Member'
-      };
-      setCards([defaultCard]);
+      // Load saved cards or default
+      const savedCards = localStorage.getItem(`cards_${parsedUser.id}`);
+      if (savedCards) {
+        setCards(JSON.parse(savedCards));
+      } else {
+        const defaultCard = {
+          id: Date.now(),
+          number: `4400 ${parsedUser.id.toString().padStart(4, '0')} ${parsedUser.id.toString().padStart(4, '0')} 9988`,
+          exp: '12/28',
+          cvv: '123',
+          brand: 'VISA',
+          isFrozen: false
+        };
+        setCards([defaultCard]);
+      }
     }
   }, []);
 
+  useEffect(() => {
+    if (user && cards.length > 0) {
+      localStorage.setItem(`cards_${user.id}`, JSON.stringify(cards));
+    }
+  }, [cards, user]);
+
   const handleAddCard = () => {
-    const newId = cards.length + 1;
     const newCard = {
-      id: newId,
+      id: Date.now(),
       number: `5200 ${Math.floor(Math.random() * 9000 + 1000)} ${Math.floor(Math.random() * 9000 + 1000)} ${Math.floor(Math.random() * 9000 + 1000)}`,
       exp: '06/30',
       cvv: Math.floor(Math.random() * 900 + 100).toString(),
-      brand: newId % 2 === 0 ? 'MASTERCARD' : 'VISA',
-      isFrozen: false,
-      name: user?.full_name || 'Nidhi Member'
+      brand: cards.length % 2 === 0 ? 'MASTERCARD' : 'VISA',
+      isFrozen: false
     };
     setCards([...cards, newCard]);
-    setActiveCardIndex(cards.length); // Switch to the new card
+    setActiveCardIndex(cards.length);
     alert("New virtual card generated successfully!");
+  };
+
+  const handleRemoveCard = () => {
+    if (cards.length <= 1) {
+      alert("You must have at least one card active.");
+      return;
+    }
+    if (confirm("Are you sure you want to remove this card? This action cannot be undone.")) {
+      const updatedCards = cards.filter((_, i) => i !== activeCardIndex);
+      setCards(updatedCards);
+      setActiveCardIndex(0);
+      setShowFullDetails(false);
+    }
   };
 
   const toggleFreeze = () => {
@@ -71,11 +92,13 @@ export default function CardsPage() {
               className={`${styles.selectorBtn} ${activeCardIndex === i ? styles.activeSelector : ''}`}
               onClick={() => { setActiveCardIndex(i); setShowFullDetails(false); }}
             >
-              Card {c.id} ({c.brand})
+              Card {i + 1} ({c.brand})
             </button>
           ))}
         </div>
       )}
+
+      {!currentCard && cards.length > 0 && <div>Loading your cards...</div>}
 
       {currentCard && (
         <div className={styles.grid}>
@@ -93,7 +116,7 @@ export default function CardsPage() {
                 <div className={styles.cardMeta}>
                   <div className={styles.metaItem}>
                     <span>HOLDER NAME</span>
-                    <div className={styles.val}>{currentCard.name}</div>
+                    <div className={styles.val}>{user?.full_name || 'Nidhi Member'}</div>
                   </div>
                   <div className={styles.metaItem}>
                     <span>EXPIRY</span>
@@ -118,11 +141,14 @@ export default function CardsPage() {
               <button className={`${styles.actionBtn} ${currentCard.isFrozen ? styles.unfreeze : styles.freeze}`} onClick={toggleFreeze}>
                 {currentCard.isFrozen ? 'Unfreeze Card' : 'Freeze Card'}
               </button>
+              <button className={`${styles.actionBtn} ${styles.removeBtn}`} onClick={handleRemoveCard}>
+                Remove Card
+              </button>
             </div>
           </div>
 
           <div className={styles.settingsSection}>
-            <h3 className={styles.sectionTitle}>Card Settings (Card #{currentCard.id})</h3>
+            <h3 className={styles.sectionTitle}>Card Settings (Card {activeCardIndex + 1})</h3>
             <div className={styles.settingItem}>
               <div className={styles.settingInfo}>
                 <div className={styles.settingName}>Online Transactions</div>

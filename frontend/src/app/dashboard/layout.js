@@ -1,143 +1,102 @@
 'use client';
 
-import { useState, useEffect, Suspense } from 'react';
-import styles from './dashboard.module.css';
+import { useState, useEffect, useRef } from 'react';
+import { usePathname, useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { useRouter, usePathname, useSearchParams } from 'next/navigation';
+import styles from './dashboard.module.css';
 
 export default function DashboardLayout({ children }) {
-  return (
-    <Suspense fallback={<div>Loading Layout...</div>}>
-      <DashboardContent>{children}</DashboardContent>
-    </Suspense>
-  );
-}
-
-function DashboardContent({ children }) {
-  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
-  const [isNotifOpen, setIsNotifOpen] = useState(false);
-  const [isProfileOpen, setIsProfileOpen] = useState(false);
-  const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
+  const [isSidebarOpen, setSidebarOpen] = useState(false);
+  const [isNotifOpen, setNotifOpen] = useState(false);
+  const [isProfileOpen, setProfileOpen] = useState(false);
+  const [showProfileModal, setShowProfileModal] = useState(false);
   const [user, setUser] = useState(null);
-  const [searchQuery, setSearchQuery] = useState('');
+  const [search, setSearch] = useState('');
+  const [notifications, setNotifications] = useState([
+    { id: 1, title: 'Welcome to NidhiBank', desc: 'Secure your account by enabling 2FA', time: '2m ago', type: 'info', icon: '🏦' },
+    { id: 2, title: 'KYC Verified', desc: 'Your account is now fully verified', time: '1h ago', type: 'success', icon: '✅' }
+  ]);
   
-  const router = useRouter();
   const pathname = usePathname();
-  const searchParams = useSearchParams();
+  const router = useRouter();
+  const searchInputRef = useRef(null);
+
+  // Audio refs
+  const debitAudio = useRef(null);
+  const creditAudio = useRef(null);
 
   useEffect(() => {
     const storedUser = localStorage.getItem('user');
     if (storedUser) {
-      const parsedUser = JSON.parse(storedUser);
-      setUser(parsedUser);
+      setUser(JSON.parse(storedUser));
+    } else {
+      router.push('/login');
     }
-    const q = searchParams.get('q');
-    if (q) setSearchQuery(q);
-  }, [searchParams]);
 
-  const mockNotifs = [
-    { id: 1, title: 'Transfer Successful', msg: 'You sent $200.00 to alex@test.com', time: '2m ago' },
-    { id: 2, title: 'Security Alert', msg: 'New login detected from Mumbai, IN', time: '1h ago' },
-    { id: 3, title: 'System Update', msg: 'Dashboard v1.2 is now live with Users view', time: 'Yesterday' }
-  ];
+    // Initialize Audio
+    debitAudio.current = new Audio('https://assets.mixkit.co/active_storage/sfx/2358/2358-preview.mp3'); // Debit/Alert
+    creditAudio.current = new Audio('https://assets.mixkit.co/active_storage/sfx/2012/2012-preview.mp3'); // Credit/Success
 
-  const mockAccNo = user ? `8899${user.id.toString().padStart(8, '0')}` : '---';
-  const mockIFSC = 'NB0001';
+    const handleNewTransaction = (e) => {
+      const { type, amount, message } = e.detail;
+      const newNotif = {
+        id: Date.now(),
+        title: type === 'DEBIT' ? 'Transaction Sent' : 'Payment Received',
+        desc: message,
+        time: 'Just now',
+        type: type === 'DEBIT' ? 'warning' : 'success',
+        icon: type === 'DEBIT' ? '💸' : '💰',
+        isNew: true
+      };
+      
+      setNotifications(prev => [newNotif, ...prev]);
+      setNotifOpen(true); // Open tray to show alert
 
-  const handleLogout = (e) => {
-    e?.preventDefault();
+      // Play Sound
+      if (type === 'DEBIT') {
+        debitAudio.current.play().catch(e => console.log("Audio play failed", e));
+      } else {
+        creditAudio.current.play().catch(e => console.log("Audio play failed", e));
+      }
+    };
+
+    window.addEventListener('new-transaction', handleNewTransaction);
+    window.addEventListener('storage', () => {
+      const u = localStorage.getItem('user');
+      if (u) setUser(JSON.parse(u));
+    });
+
+    return () => {
+      window.removeEventListener('new-transaction', handleNewTransaction);
+    };
+  }, [router]);
+
+  const handleSearch = (e) => {
+    e.preventDefault();
+    if (!search.trim()) return;
+    router.push(`/dashboard?q=${encodeURIComponent(search)}`);
+  };
+
+  const logout = () => {
     localStorage.removeItem('user');
     router.push('/login');
   };
 
-  const handleSearchChange = (e) => {
-    const val = e.target.value;
-    setSearchQuery(val);
-    const params = new URLSearchParams(searchParams);
-    if (val) params.set('q', val);
-    else params.delete('q');
-    router.replace(`${pathname}?${params.toString()}`);
-  };
-
-  const toggleSidebar = () => setIsSidebarOpen(!isSidebarOpen);
-  
-  const toggleNotifs = (e) => {
-    e.stopPropagation();
-    setIsNotifOpen(!isNotifOpen);
-    setIsProfileOpen(false);
-  };
-
-  const toggleProfile = (e) => {
-    e.stopPropagation();
-    setIsProfileOpen(!isProfileOpen);
-    setIsNotifOpen(false);
-  };
-
-  const openProfileModal = () => {
-    setIsProfileModalOpen(true);
-    setIsProfileOpen(false);
-  };
-
-  useEffect(() => {
-    const closeTrays = () => {
-      setIsNotifOpen(false);
-      setIsProfileOpen(false);
-    };
-    window.addEventListener('click', closeTrays);
-    return () => window.removeEventListener('click', closeTrays);
-  }, []);
+  const getMockAccNo = (id) => `8899${id?.toString().padStart(8, '0')}`;
+  const mockIFSC = 'NB0001';
 
   return (
-    <div className={styles.wrapper}>
-      {/* Overlay for mobile sidebar AND Profile Modal */}
-      {(isSidebarOpen || isProfileModalOpen) && (
-        <div 
-          className={styles.overlay} 
-          onClick={() => { setIsSidebarOpen(false); setIsProfileModalOpen(false); }}
-        ></div>
-      )}
+    <div className={styles.layout}>
+      {/* Mobile Menu Overlay */}
+      {isSidebarOpen && <div className={styles.overlay} onClick={() => setSidebarOpen(false)} />}
 
-      {/* Profile Detail Modal */}
-      {isProfileModalOpen && (
-        <div className={styles.modalContent} onClick={(e) => e.stopPropagation()}>
-          <div className={styles.modalHeader}>
-            <h3>Account Details</h3>
-            <button className={styles.closeBtn} onClick={() => setIsProfileModalOpen(false)}>&times;</button>
-          </div>
-          <div className={styles.modalBody}>
-            <div className={styles.detailRow}>
-              <span>Email Address</span>
-              <strong>{user?.email}</strong>
-            </div>
-            <div className={styles.detailRow}>
-              <span>Mobile Number</span>
-              <strong>{user?.mobile_number || '+91 9876543210'}</strong>
-            </div>
-            <div className={styles.detailRow}>
-              <span>Account Number</span>
-              <strong>{mockAccNo}</strong>
-            </div>
-            <div className={styles.detailRow}>
-              <span>IFSC Code</span>
-              <strong>{mockIFSC}</strong>
-            </div>
-            <div className={styles.detailRow}>
-              <span>Account Status</span>
-              <span className={styles.statusBadge}>Verified</span>
-            </div>
-          </div>
-          <div className={styles.modalFooter}>
-            <button className={styles.primaryBtn} onClick={() => setIsProfileModalOpen(false)}>Close</button>
-          </div>
-        </div>
-      )}
-
-      <aside className={`${styles.sidebar} ${isSidebarOpen ? styles.sidebarOpen : ''}`}>
+      {/* Sidebar */}
+      <aside className={`${styles.sidebar} ${isSidebarOpen ? styles.sidebarVisible : ''}`}>
         <div className={styles.logo}>
-          <div className={styles.logoIcon}>N</div>
-          <span>NidhiBank</span>
+          <div className={styles.logoIcon}>NB</div>
+          <span className={styles.logoText}>NidhiBank</span>
         </div>
-        
+
         <nav className={styles.nav}>
           <Link href="/dashboard" className={pathname === '/dashboard' ? styles.navLinkActive : styles.navLink}>
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>
@@ -156,71 +115,92 @@ function DashboardContent({ children }) {
             <span>Users</span>
           </Link>
         </nav>
-        
+
         <div className={styles.sidebarFooter}>
-          <a href="#" onClick={handleLogout} className={styles.logoutBtn}>
+          <button className={styles.logoutBtn} onClick={logout}>
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
-            <span>Logout</span>
-          </a>
+            <span>Sign Out</span>
+          </button>
         </div>
       </aside>
 
+      {/* Main Content */}
       <main className={styles.main}>
+        {/* Header */}
         <header className={styles.header}>
-          <button className={styles.menuBtn} onClick={(e) => { e.stopPropagation(); toggleSidebar(); }}>
+          <button className={styles.menuBtn} onClick={() => setSidebarOpen(true)}>
             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
           </button>
-          
-          <div className={styles.searchBar}>
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+
+          <form className={styles.search} onSubmit={handleSearch}>
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
             <input 
               type="text" 
               placeholder="Search transactions..." 
-              value={searchQuery}
-              onChange={handleSearchChange}
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
             />
-          </div>
-          
-          <div className={styles.userProfile}>
-            <div className={`${styles.notifications} ${isNotifOpen ? styles.activeIcon : ''}`} onClick={toggleNotifs} style={{ cursor: 'pointer' }}>
+          </form>
+
+          <div className={styles.actions}>
+            <div className={styles.iconBtn} onClick={() => { setNotifOpen(!isNotifOpen); setProfileOpen(false); }}>
               <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
-              <span className={styles.notifBadge}></span>
+              {notifications.some(n => n.isNew) && <span className={styles.badge} />}
               
+              {/* Notification Tray */}
               {isNotifOpen && (
-                <div className={styles.notifTray} onClick={(e) => e.stopPropagation()}>
-                   <div className={styles.trayHeader}>Notifications</div>
-                   <div className={styles.trayBody}>
-                      {mockNotifs.map(n => (
-                        <div key={n.id} className={styles.notifItem}>
-                           <div className={styles.notifTitle}>{n.title}</div>
-                           <div className={styles.notifMsg}>{n.msg}</div>
-                           <div className={styles.notifTime}>{n.time}</div>
+                <div className={styles.tray} onClick={(e) => e.stopPropagation()}>
+                  <div className={styles.trayHeader}>
+                    <span>Notifications</span>
+                    <button className={styles.clearBtn} onClick={() => setNotifications([])}>Clear All</button>
+                  </div>
+                  <div className={styles.trayContent}>
+                    {notifications.length > 0 ? notifications.map(notif => (
+                      <div key={notif.id} className={`${styles.trayItem} ${notif.isNew ? styles.itemNew : ''}`}>
+                        <div className={styles.trayIcon}>{notif.icon}</div>
+                        <div className={styles.trayText}>
+                          <div className={styles.trayLabel}>{notif.title}</div>
+                          <div className={styles.trayDesc}>{notif.desc}</div>
+                          <div className={styles.trayTime}>{notif.time}</div>
                         </div>
-                      ))}
-                   </div>
+                      </div>
+                    )) : <div className={styles.noNotif}>No new notifications</div>}
+                  </div>
                 </div>
               )}
             </div>
 
-            <div 
-              className={`${styles.avatarContainer} ${isProfileOpen ? styles.activeIcon : ''}`} 
-              onClick={toggleProfile}
-              style={{ cursor: 'pointer', position: 'relative' }}
-            >
+            <div className={styles.profile} onClick={() => { setProfileOpen(!isProfileOpen); setNotifOpen(false); }}>
               <div className={styles.avatar}>{user?.email ? user.email[0].toUpperCase() : 'U'}</div>
-              
+              <div className={styles.userInfo}>
+                <span className={styles.userName}>{user?.full_name || 'Global User'}</span>
+                <span className={styles.userRole}>Premium Account</span>
+              </div>
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="m6 9 6 6 6-6"/></svg>
+
+              {/* Profile Tray */}
               {isProfileOpen && (
-                <div className={styles.profileTray} onClick={(e) => e.stopPropagation()}>
-                  <div className={styles.profileHeader}>
-                    <span className={styles.profileEmail}>{user?.email || 'User Account'}</span>
-                    <span className={styles.profileDetail}>Account: {mockAccNo}</span>
+                <div className={styles.tray} onClick={(e) => e.stopPropagation()}>
+                  <div className={styles.trayItem} onClick={() => { setShowProfileModal(true); setProfileOpen(false); }}>
+                    <div className={styles.trayIcon}>🪪</div>
+                    <div className={styles.trayText}>
+                      <div className={styles.trayLabel}>My Profile</div>
+                      <div className={styles.trayDesc}>View account details</div>
+                    </div>
                   </div>
-                  <div className={styles.trayBody}>
-                    <div className={styles.trayItem} onClick={openProfileModal}>My Profile</div>
-                    <div className={styles.trayItem} onClick={() => alert('Settings feature coming soon!')}>Account Settings</div>
-                    <div className={`${styles.trayItem} ${styles.logoutItem}`} onClick={handleLogout}>
-                       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
-                       <span>Logout</span>
+                  <div className={styles.trayItem} onClick={() => { router.push('/dashboard/settings'); setProfileOpen(false); }}>
+                    <div className={styles.trayIcon}>⚙️</div>
+                    <div className={styles.trayText}>
+                      <div className={styles.trayLabel}>Account Settings</div>
+                      <div className={styles.trayDesc}>Update your profile info</div>
+                    </div>
+                  </div>
+                  <div className={styles.trayDivider} />
+                  <div className={styles.trayItem} onClick={logout}>
+                    <div className={styles.trayIcon}>🚪</div>
+                    <div className={styles.trayText}>
+                      <div className={styles.trayLabel}>Logout</div>
+                      <div className={styles.trayDesc}>Securely exit your session</div>
                     </div>
                   </div>
                 </div>
@@ -228,11 +208,64 @@ function DashboardContent({ children }) {
             </div>
           </div>
         </header>
-        
+
+        {/* Content Area */}
         <div className={styles.content}>
           {children}
         </div>
       </main>
+
+      {/* Profile Modal */}
+      {showProfileModal && (
+        <div className={styles.modalOverlay} onClick={() => setShowProfileModal(false)}>
+          <div className={styles.modal} onClick={(e) => e.stopPropagation()}>
+            <div className={styles.modalHeader}>
+              <h2>Account Identity</h2>
+              <button className={styles.closeBtn} onClick={() => setShowProfileModal(false)}>&times;</button>
+            </div>
+            <div className={styles.modalBody}>
+              <div className={styles.modalAvatar}>
+                {user?.full_name ? user.full_name[0].toUpperCase() : user?.email?.[0].toUpperCase()}
+              </div>
+              <div className={styles.modalSections}>
+                <div className={styles.modalSection}>
+                  <label>Full Name</label>
+                  <div>{user?.full_name || 'Nidhi Member'}</div>
+                </div>
+                <div className={styles.modalSection}>
+                  <label>Email Address</label>
+                  <div>{user?.email}</div>
+                </div>
+                <div className={styles.modalSection}>
+                  <label>Mobile Number</label>
+                  <div>{user?.mobile_number}</div>
+                </div>
+                <div className={styles.modalGrid}>
+                   <div className={styles.modalSection}>
+                    <label>Account Number</label>
+                    <div className={styles.mono}>{getMockAccNo(user?.id)}</div>
+                  </div>
+                  <div className={styles.modalSection}>
+                    <label>IFSC Code</label>
+                    <div className={styles.mono}>{mockIFSC}</div>
+                  </div>
+                </div>
+                <div className={styles.modalSection}>
+                  <label>Member ID</label>
+                  <div className={styles.mono}>#NB-{user?.id?.toString().padStart(5, '0')}</div>
+                </div>
+              </div>
+            </div>
+            <div className={styles.modalFooter}>
+              <div className={styles.verifiedBadge}>
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3"><polyline points="20 6 9 17 4 12"/></svg>
+                Identity Verified
+              </div>
+              <button className={styles.modalDoneBtn} onClick={() => setShowProfileModal(false)}>Close Window</button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
