@@ -173,28 +173,38 @@
   box-shadow: 0 0 10px rgba(239, 68, 68, 0.4);
 }
 
-.notifBadge {
+.badge {
   position: absolute;
-  top: 0;
-  right: 0;
+  top: 8px;
+  right: 8px;
   width: 8px;
   height: 8px;
-  background-color: var(--accent-primary);
+  background-color: #f87171;
   border-radius: 50%;
-  border: 2px solid var(--bg-dark);
+  border: 2px solid #050608;
+  box-shadow: 0 0 10px rgba(248, 113, 113, 0.5);
+  animation: heartbeat 1.5s ease-in-out infinite;
+}
+
+@keyframes heartbeat {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.2); }
+  100% { transform: scale(1); }
 }
 
 .avatar {
-  width: 40px;
-  height: 40px;
-  background: linear-gradient(135deg, #1e293b, #0f172a);
-  border-radius: 50%;
+  width: 42px;
+  height: 42px;
+  background: linear-gradient(135deg, #6366f1, #8b5cf6);
+  border-radius: 12px;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-weight: 600;
-  border: 1px solid var(--glass-border);
+  font-weight: 700;
+  color: white;
+  border: 1px solid rgba(255, 255, 255, 0.1);
   flex-shrink: 0;
+  box-shadow: 0 4px 12px rgba(99, 102, 241, 0.2);
 }
 
 .loading {
@@ -425,24 +435,24 @@
 
 .amountNeg { color: #f87171; }
 .amountPos { color: #34d399; }
-/* Notification Tray */
-.notifTray {
+.tray {
   position: absolute;
-  top: 50px;
+  top: 60px;
   right: 0;
   width: 320px;
-  background: var(--bg-sidebar);
+  background: rgba(13, 14, 18, 0.95);
   border: 1px solid var(--border-color);
-  border-radius: 16px;
-  box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+  border-radius: 20px;
+  box-shadow: 0 20px 50px rgba(0,0,0,0.6);
+  backdrop-filter: blur(20px);
   z-index: 1001;
   overflow: hidden;
-  animation: slideIn 0.2s ease;
+  animation: trayPop 0.3s cubic-bezier(0.18, 0.89, 0.32, 1.28);
 }
 
-@keyframes slideIn {
-  from { opacity: 0; transform: translateY(-10px); }
-  to { opacity: 1; transform: translateY(0); }
+@keyframes trayPop {
+  from { opacity: 0; transform: translateY(-10px) scale(0.95); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
 }
 
 .trayHeader {

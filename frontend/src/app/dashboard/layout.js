@@ -21,10 +21,6 @@ export default function DashboardLayout({ children }) {
   const router = useRouter();
   const searchInputRef = useRef(null);
 
-  // Audio refs
-  const debitAudio = useRef(null);
-  const creditAudio = useRef(null);
-
   useEffect(() => {
     const storedUser = localStorage.getItem('user');
     if (storedUser) {
@@ -133,14 +129,14 @@ export default function DashboardLayout({ children }) {
 
           <div className={styles.actions}>
             <div className={styles.iconBtn} onClick={() => { setNotifOpen(!isNotifOpen); setProfileOpen(false); }}>
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
               {notifications.some(n => n.isNew) && <span className={styles.badge} />}
               
               {/* Notification Tray */}
               {isNotifOpen && (
                 <div className={styles.tray} onClick={(e) => e.stopPropagation()}>
                   <div className={styles.trayHeader}>
-                    <span>Notifications</span>
+                    <span>Recent Notifications</span>
                     <button className={styles.clearBtn} onClick={() => setNotifications([])}>Clear All</button>
                   </div>
                   <div className={styles.trayContent}>
@@ -160,12 +156,12 @@ export default function DashboardLayout({ children }) {
             </div>
 
             <div className={styles.profile} onClick={() => { setProfileOpen(!isProfileOpen); setNotifOpen(false); }}>
-              <div className={styles.avatar}>{user?.email ? user.email[0].toUpperCase() : 'U'}</div>
+              <div className={styles.avatar}>{user?.full_name ? user.full_name[0].toUpperCase() : user?.email ? user.email[0].toUpperCase() : 'U'}</div>
               <div className={styles.userInfo}>
                 <span className={styles.userName}>{user?.full_name || 'Global User'}</span>
                 <span className={styles.userRole}>Premium Account</span>
               </div>
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="m6 9 6 6 6-6"/></svg>
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" className={isProfileOpen ? styles.chevronUp : ''}><path d="m6 9 6 6 6-6"/></svg>
 
               {/* Profile Tray */}
               {isProfileOpen && (
@@ -174,22 +170,22 @@ export default function DashboardLayout({ children }) {
                     <div className={styles.trayIcon}>🪪</div>
                     <div className={styles.trayText}>
                       <div className={styles.trayLabel}>My Profile</div>
-                      <div className={styles.trayDesc}>View account details</div>
+                      <div className={styles.trayDesc}>Account identities</div>
                     </div>
                   </div>
                   <div className={styles.trayItem} onClick={() => { router.push('/dashboard/settings'); setProfileOpen(false); }}>
                     <div className={styles.trayIcon}>⚙️</div>
                     <div className={styles.trayText}>
                       <div className={styles.trayLabel}>Account Settings</div>
-                      <div className={styles.trayDesc}>Update your profile info</div>
+                      <div className={styles.trayDesc}>Preferences & Profile</div>
                     </div>
                   </div>
                   <div className={styles.trayDivider} />
-                  <div className={styles.trayItem} onClick={logout}>
+                  <div className={`${styles.trayItem} ${styles.logoutItem}`} onClick={logout}>
                     <div className={styles.trayIcon}>🚪</div>
                     <div className={styles.trayText}>
                       <div className={styles.trayLabel}>Logout</div>
-                      <div className={styles.trayDesc}>Securely exit your session</div>
+                      <div className={styles.trayDesc}>Securely exit session</div>
                     </div>
                   </div>
                 </div>
