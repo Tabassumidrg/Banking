@@ -17,14 +17,30 @@ export default function DashboardLayout({ children }) {
     { id: 2, title: 'KYC Verified', desc: 'Your account is now fully verified', time: '1h ago', type: 'success', icon: '✅' }
   ]);
   
+  const [balance, setBalance] = useState(null);
+  
   const pathname = usePathname();
   const router = useRouter();
   const searchInputRef = useRef(null);
 
+  const fetchBalance = async (userId) => {
+    try {
+      const resp = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'https://banking-backend-api.onrender.com'}/api/transactions/summary/${userId}`);
+      if (resp.ok) {
+        const data = await resp.json();
+        setBalance(data.current_balance);
+      }
+    } catch (e) {
+      console.error("Failed to fetch balance for modal", e);
+    }
+  };
+
   useEffect(() => {
     const storedUser = localStorage.getItem('user');
     if (storedUser) {
-      setUser(JSON.parse(storedUser));
+      const u = JSON.parse(storedUser);
+      setUser(u);
+      fetchBalance(u.id);
     } else {
       router.push('/login');
     }
@@ -204,43 +220,48 @@ export default function DashboardLayout({ children }) {
       {showProfileModal && (
         <div className={styles.modalOverlay} onClick={() => setShowProfileModal(false)}>
           <div className={styles.modal} onClick={(e) => e.stopPropagation()}>
-            <div className={styles.modalHeader}>
-              <h2>Account Identity</h2>
-              <button className={styles.closeBtn} onClick={() => setShowProfileModal(false)}>&times;</button>
-            </div>
-            <div className={styles.modalBody}>
-              <div className={styles.modalAvatar}>
-                {user?.full_name ? user.full_name[0].toUpperCase() : user?.email?.[0].toUpperCase()}
+              <div className={styles.modalHeader}>
+                <h2>Account Identity</h2>
+                <button className={styles.closeBtn} onClick={() => setShowProfileModal(false)}>&times;</button>
               </div>
-              <div className={styles.modalSections}>
-                <div className={styles.modalSection}>
-                  <label>Full Name</label>
-                  <div>{user?.full_name || 'Nidhi Member'}</div>
+              <div className={styles.modalBody}>
+                <div className={styles.modalAvatarContainer}>
+                  <div className={styles.modalAvatar}>
+                    {user?.full_name ? user.full_name[0].toUpperCase() : user?.email?.[0].toUpperCase()}
+                  </div>
+                  <div className={styles.modalBalanceBox}>
+                    <label>Current Balance</label>
+                    <div className={styles.modalBalanceVal}>
+                      ₹{balance !== null ? balance.toLocaleString('en-IN') : '...'}
+                    </div>
+                  </div>
                 </div>
-                <div className={styles.modalSection}>
-                  <label>Email Address</label>
-                  <div>{user?.email}</div>
-                </div>
-                <div className={styles.modalSection}>
-                  <label>Mobile Number</label>
-                  <div>{user?.mobile_number}</div>
-                </div>
-                <div className={styles.modalGrid}>
-                   <div className={styles.modalSection}>
-                    <label>Account Number</label>
-                    <div className={styles.mono}>{getMockAccNo(user?.id)}</div>
+                
+                <div className={styles.modalSections}>
+                  <div className={styles.modalSection}>
+                    <label>Account Holder</label>
+                    <div className={styles.modalVal}>{user?.full_name || 'Nidhi Member'}</div>
+                  </div>
+                  <div className={styles.modalGrid}>
+                     <div className={styles.modalSection}>
+                      <label>Account Number</label>
+                      <div className={styles.mono}>{getMockAccNo(user?.id)}</div>
+                    </div>
+                    <div className={styles.modalSection}>
+                      <label>IFSC Code</label>
+                      <div className={styles.mono}>{mockIFSC}</div>
+                    </div>
                   </div>
                   <div className={styles.modalSection}>
-                    <label>IFSC Code</label>
-                    <div className={styles.mono}>{mockIFSC}</div>
+                    <label>Email ID</label>
+                    <div className={styles.modalVal}>{user?.email}</div>
+                  </div>
+                  <div className={styles.modalSection}>
+                    <label>Member ID</label>
+                    <div className={styles.mono}>#NB-{user?.id?.toString().padStart(5, '0')}</div>
                   </div>
                 </div>
-                <div className={styles.modalSection}>
-                  <label>Member ID</label>
-                  <div className={styles.mono}>#NB-{user?.id?.toString().padStart(5, '0')}</div>
-                </div>
               </div>
-            </div>
             <div className={styles.modalFooter}>
               <div className={styles.verifiedBadge}>
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3"><polyline points="20 6 9 17 4 12"/></svg>
