@@ -81,24 +81,29 @@
 
 .nav_actions {
   display: flex;
-  gap: 1.2rem;
+  gap: 1rem;
   align-items: center;
+  margin-left: 1.5rem;
 }
 
 .nav_login_btn {
   color: #e2e8f0;
   text-decoration: none;
   font-weight: 600;
-  padding: 0.5rem 1rem;
-  border-radius: 8px;
-  border: 1px solid transparent;
+  padding: 0.6rem 1.5rem;
+  border-radius: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  background: rgba(255, 255, 255, 0.04);
   transition: all 0.3s ease;
+  white-space: nowrap;
+  font-size: 0.95rem;
+  letter-spacing: 0.01em;
 }
 
 .nav_login_btn:hover {
   color: #ffffff;
-  border-color: rgba(255, 255, 255, 0.2);
-  background: rgba(255, 255, 255, 0.05);
+  border-color: rgba(255, 255, 255, 0.3);
+  background: rgba(255, 255, 255, 0.08);
 }
 
 .nav_signup_btn {
@@ -107,11 +112,14 @@
   padding: 0.6rem 1.75rem;
   border-radius: 10px;
   font-weight: 600;
+  font-size: 0.95rem;
   text-decoration: none;
   transition: all 0.3s ease;
   box-shadow: 0 4px 15px rgba(59, 130, 246, 0.3);
   position: relative;
   overflow: hidden;
+  white-space: nowrap;
+  letter-spacing: 0.01em;
 }
 
 .nav_signup_btn::before {
