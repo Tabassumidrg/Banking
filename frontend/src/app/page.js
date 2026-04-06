@@ -16,10 +16,10 @@ export default function Home() {
             👉 Trusted Banking for a Digital Future
           </p>
           <div className={styles.cta_container}>
-            <Link href="/login" className={styles.secondary_btn}>
+            <Link href="/login" prefetch={false} className={styles.secondary_btn}>
               <span>🔐</span> Sign In
             </Link>
-            <Link href="/signup" className={styles.primary_btn}>
+            <Link href="/signup" prefetch={false} className={styles.primary_btn}>
               <span>➕</span> Open Account
             </Link>
           </div>

@@ -1,7 +1,7 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
-import { usePathname, useRouter } from 'next/navigation';
+import { useState, useEffect, useRef, Suspense } from 'react';
+import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import styles from './dashboard.module.css';
 
@@ -30,10 +30,10 @@ export default function DashboardLayout({ children }) {
 
   const fetchBalance = async (userId) => {
     try {
-      const resp = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'https://banking-backend-api.onrender.com'}/api/transactions/summary/${userId}`);
+      const resp = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'https://banking-backend-api.onrender.com'}/api/dashboard/summary/${userId}`);
       if (resp.ok) {
         const data = await resp.json();
-        setBalance(data.current_balance);
+        setBalance(data.balance);
       }
     } catch (e) {
       console.error("Failed to fetch balance for modal", e);
@@ -50,8 +50,49 @@ export default function DashboardLayout({ children }) {
       router.push('/login');
     }
 
+    const playNotificationSound = (type) => {
+      try {
+        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        const oscillator = audioCtx.createOscillator();
+        const gainNode = audioCtx.createGain();
+
+        oscillator.connect(gainNode);
+        gainNode.connect(audioCtx.destination);
+
+        if (type === 'CREDIT') {
+          // Happy ascending chime (Credit) - Loud
+          oscillator.type = 'triangle';
+          oscillator.frequency.setValueAtTime(523.25, audioCtx.currentTime); 
+          oscillator.frequency.exponentialRampToValueAtTime(783.99, audioCtx.currentTime + 0.15);
+          gainNode.gain.setValueAtTime(1.0, audioCtx.currentTime); // Full volume
+          gainNode.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.4);
+          oscillator.start(audioCtx.currentTime);
+          oscillator.stop(audioCtx.currentTime + 0.4);
+        } else {
+          // Descending subtle tone (Debit) - Loud
+          oscillator.type = 'triangle';
+          oscillator.frequency.setValueAtTime(440, audioCtx.currentTime); 
+          oscillator.frequency.exponentialRampToValueAtTime(349.23, audioCtx.currentTime + 0.15);
+          gainNode.gain.setValueAtTime(1.0, audioCtx.currentTime); // Full volume
+          gainNode.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.3);
+          oscillator.start(audioCtx.currentTime);
+          oscillator.stop(audioCtx.currentTime + 0.3);
+        }
+        
+        // Ensure the audio context is active (browsers suspend it by default until interaction)
+        if (audioCtx.state === 'suspended') {
+          audioCtx.resume();
+        }
+      } catch (e) {
+        console.error("Audio disabled or unsupported", e);
+      }
+    };
+
     const handleNewTransaction = (e) => {
       const { type, amount, message } = e.detail;
+      
+      playNotificationSound(type);
+
       const newNotif = {
         id: Date.now(),
         title: type === 'DEBIT' ? 'Transaction Sent' : 'Payment Received',
@@ -64,6 +105,13 @@ export default function DashboardLayout({ children }) {
       
       setNotifications(prev => [newNotif, ...prev]);
       setNotifOpen(true);
+      
+      // Refresh balance in sync
+      const storedUser = localStorage.getItem('user');
+      if (storedUser) {
+        const u = JSON.parse(storedUser);
+        if (u.id) fetchBalance(u.id);
+      }
     };
 
     window.addEventListener('new-transaction', handleNewTransaction);
@@ -79,8 +127,11 @@ export default function DashboardLayout({ children }) {
 
   const handleSearch = (e) => {
     e.preventDefault();
-    if (!search.trim()) return;
-    router.push(`/dashboard?q=${encodeURIComponent(search)}`);
+    if (!search.trim()) {
+      router.push('/dashboard');
+    } else {
+      router.push(`/dashboard?q=${encodeURIComponent(search)}`);
+    }
   };
 
   const logout = () => {
@@ -93,6 +144,9 @@ export default function DashboardLayout({ children }) {
 
   return (
     <div className={styles.layout}>
+      <Suspense fallback={null}>
+        <SearchSync setSearch={setSearch} />
+      </Suspense>
       {/* Mobile Menu Overlay */}
       {isSidebarOpen && <div className={styles.overlay} onClick={() => setSidebarOpen(false)} />}
 
@@ -101,9 +155,6 @@ export default function DashboardLayout({ children }) {
         <div className={styles.logo}>
           <div className={styles.logoIcon}>NB</div>
           <span className={styles.logoText}>NidhiBank</span>
-          <button className={styles.sidebarClose} onClick={() => setSidebarOpen(false)}>
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
-          </button>
         </div>
 
         <nav className={styles.nav}>
@@ -193,7 +244,11 @@ export default function DashboardLayout({ children }) {
               {/* Profile Tray */}
               {isProfileOpen && (
                 <div className={styles.tray} onClick={(e) => e.stopPropagation()}>
-                  <div className={styles.trayItem} onClick={() => { setShowProfileModal(true); setProfileOpen(false); }}>
+                  <div className={styles.trayItem} onClick={() => { 
+                    setShowProfileModal(true); 
+                    setProfileOpen(false);
+                    if (user?.id) fetchBalance(user.id);
+                  }}>
                     <div className={styles.trayIcon}>🪪</div>
                     <div className={styles.trayText}>
                       <div className={styles.trayLabel}>My Profile</div>
@@ -297,4 +352,13 @@ export default function DashboardLayout({ children }) {
       )}
     </div>
   );
+}
+
+function SearchSync({ setSearch }) {
+  const searchParams = useSearchParams();
+  useEffect(() => {
+    const q = searchParams.get('q') || '';
+    setSearch(q);
+  }, [searchParams, setSearch]);
+  return null;
 }

@@ -135,19 +135,21 @@ function DashboardContent() {
         <div className={styles.section}>
           <div className={styles.sectionTitle}>
             <span>Recent Transactions</span>
-            <span className={styles.viewAll}>View all</span>
+            <button className={styles.viewAll} onClick={() => router.push('/dashboard')}>View all</button>
           </div>
           
           <div className={styles.transList}>
             {(summary.transactions || []).filter(t => 
               t.receiver_email?.toLowerCase().includes(query.toLowerCase()) ||
               t.sender_email?.toLowerCase().includes(query.toLowerCase()) ||
+              t.description?.toLowerCase().includes(query.toLowerCase()) ||
               t.amount.toString().includes(query)
             ).length > 0 ? (
               summary.transactions
                 .filter(t => 
                   t.receiver_email?.toLowerCase().includes(query.toLowerCase()) ||
                   t.sender_email?.toLowerCase().includes(query.toLowerCase()) ||
+                  t.description?.toLowerCase().includes(query.toLowerCase()) ||
                   t.amount.toString().includes(query)
                 )
                 .map((t) => (

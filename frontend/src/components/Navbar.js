@@ -12,8 +12,8 @@ export default function Navbar() {
       </Link>
 
       <div className={styles.nav_actions}>
-        <Link href="/login" className={styles.nav_login_btn}>Log in</Link>
-        <Link href="/signup" className={styles.nav_signup_btn}>Get Started</Link>
+        <Link href="/login" prefetch={false} className={styles.nav_login_btn}>Log in</Link>
+        <Link href="/signup" prefetch={false} className={styles.nav_signup_btn}>Get Started</Link>
       </div>
     </nav>
   );
