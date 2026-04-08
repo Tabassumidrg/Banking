@@ -238,6 +238,15 @@
   border-color: rgba(16, 185, 129, 0.3);
 }
 
+.payBtn {
+  color: #a855f7;
+  border-color: rgba(168, 85, 247, 0.3);
+}
+
+.payBtn:hover {
+  background: rgba(168, 85, 247, 0.1) !important;
+}
+
 .removeBtn {
   color: #94a3b8;
   font-size: 13px;
@@ -356,6 +365,287 @@ input:checked + .slider:before {
 .progressFill {
   height: 100%;
   background: linear-gradient(to right, #6366f1, #a855f7);
+}
+
+/* TRANSACTION TRACKER */
+.txListContainer {
+  margin-top: 40px;
+  border-top: 1px solid rgba(255, 255, 255, 0.05);
+  padding-top: 30px;
+}
+
+.txList {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+  max-height: 300px;
+  overflow-y: auto;
+}
+
+.txItem {
+  background: rgba(255, 255, 255, 0.02);
+  border-radius: 12px;
+  padding: 15px;
+  border-left: 3px solid transparent;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.txBlocked {
+  border-left-color: #ef4444;
+  background: rgba(239, 68, 68, 0.05);
+}
+
+.txCompleted {
+  border-left-color: #10b981;
+}
+
+.txMain {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.txMerchant {
+  font-weight: 600;
+  font-size: 15px;
+  color: white;
+}
+
+.txAmount {
+  font-weight: 700;
+  font-size: 15px;
+}
+
+.txBlocked .txAmount {
+  color: #ef4444;
+}
+
+.txCompleted .txAmount {
+  color: #10b981;
+}
+
+.txMeta {
+  display: flex;
+  justify-content: space-between;
+  font-size: 12px;
+  color: #94a3b8;
+}
+
+.txStatus {
+  font-weight: 600;
+}
+
+.txBlocked .txStatus {
+  color: #ef4444;
+}
+
+.txCompleted .txStatus {
+  color: #10b981;
+}
+
+.emptyTx {
+  text-align: center;
+  padding: 30px;
+  color: #64748b;
+  font-style: italic;
+  font-size: 14px;
+}
+
+/* SIMULATOR MODALS */
+.modalOverlay {
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: rgba(15, 23, 42, 0.8);
+  backdrop-filter: blur(8px);
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  animation: fadeIn 0.3s ease;
+}
+
+.modal {
+  background: #1e293b;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 20px;
+  width: 100%;
+  max-width: 450px;
+  padding: 35px;
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+}
+
+.modalTitle {
+  font-size: 22px;
+  font-weight: 700;
+  color: white;
+  margin-bottom: 5px;
+}
+
+.modalSub {
+  font-size: 14px;
+  color: #94a3b8;
+  margin-bottom: 25px;
+  line-height: 1.5;
+}
+
+.simForm {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.formGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.formGroup label {
+  font-size: 12px;
+  text-transform: uppercase;
+  color: #94a3b8;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+}
+
+.formGroup input, .formGroup select {
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  padding: 12px 15px;
+  border-radius: 10px;
+  color: white;
+  font-size: 15px;
+  outline: none;
+}
+
+.formGroup input:focus, .formGroup select:focus {
+  border-color: #6366f1;
+}
+
+.hint {
+  font-size: 12px;
+  color: #eab308;
+  margin-top: 4px;
+}
+
+.modalActions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 15px;
+  margin-top: 10px;
+}
+
+.cancelBtn {
+  background: transparent;
+  color: #94a3b8;
+  border: 1px solid transparent;
+  padding: 10px 20px;
+  border-radius: 10px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.cancelBtn:hover {
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.submitBtn {
+  background: #6366f1;
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 10px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.submitBtn:hover {
+  background: #4f46e5;
+}
+
+/* OTP SECTION */
+.otpHeader {
+  text-align: center;
+  margin-bottom: 25px;
+}
+
+.otpHeader svg {
+  margin-bottom: 15px;
+}
+
+.otpInputGroup {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 30px;
+}
+
+.otpInput {
+  background: rgba(255, 255, 255, 0.05);
+  border: 2px solid rgba(255, 255, 255, 0.1);
+  border-radius: 12px;
+  width: 150px;
+  height: 60px;
+  text-align: center;
+  font-size: 28px;
+  letter-spacing: 8px;
+  color: white;
+  outline: none;
+}
+
+.otpInput:focus {
+  border-color: #10b981;
+}
+
+.verifyBtn {
+  background: #10b981;
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 10px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.verifyBtn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* TOAST NOTIFICATION */
+.toastNotification {
+  position: fixed;
+  bottom: 30px;
+  right: 30px;
+  background: #1e293b;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-left: 4px solid #3b82f6;
+  padding: 20px;
+  border-radius: 10px;
+  display: flex;
+  align-items: flex-start;
+  gap: 15px;
+  box-shadow: 0 15px 30px rgba(0, 0, 0, 0.5);
+  z-index: 2000;
+  animation: slideInRight 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  max-width: 400px;
+}
+
+@keyframes slideInRight {
+  from { transform: translateX(100%); opacity: 0; }
+  to { transform: translateX(0); opacity: 1; }
+}
+
+.toastIcon {
+  font-size: 20px;
+}
+
+.toastContent {
+  color: white;
+  font-size: 14px;
+  line-height: 1.5;
 }
 
 @media (max-width: 1024px) {
