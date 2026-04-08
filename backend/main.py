@@ -45,6 +45,19 @@ class PasswordChangeRequest(BaseModel):
     current_password: str
     new_password: str
 
+class UserAdminCreate(BaseModel):
+    full_name: str
+    email: str
+    mobile_number: str
+    password: str
+    balance: float = 0.0
+
+class UserUpdate(BaseModel):
+    full_name: str
+    email: str
+    mobile_number: str
+    balance: float
+
 @app.get("/health")
 def health_check():
     return {"status": "ok", "message": "Nidhi Bank Backend is running"}
@@ -177,6 +190,93 @@ def list_users():
             u["balance"] = float(u["balance"])
             
         return users
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+    finally:
+        cur.close()
+        conn.close()
+
+@app.post("/api/users")
+def admin_create_user(user: UserAdminCreate):
+    if not db_url:
+        raise HTTPException(status_code=500, detail="Database isn't configured")
+        
+    try:
+        conn = psycopg2.connect(db_url)
+        conn.autocommit = True
+        cur = conn.cursor(cursor_factory=RealDictCursor)
+        
+        # Check if exists
+        cur.execute("SELECT id FROM users WHERE email = %s OR mobile_number = %s", (user.email, user.mobile_number))
+        if cur.fetchone():
+            raise HTTPException(status_code=400, detail="Email or Mobile Number already registered")
+            
+        password_bytes = user.password.encode('utf-8')
+        salt = bcrypt.gensalt()
+        hashed_pwd = bcrypt.hashpw(password_bytes, salt).decode('utf-8')
+        
+        cur.execute(
+            "INSERT INTO users (full_name, email, mobile_number, password_hash, balance) VALUES (%s, %s, %s, %s, %s) RETURNING id, full_name, email, mobile_number, balance",
+            (user.full_name, user.email, user.mobile_number, hashed_pwd, user.balance)
+        )
+        new_user = cur.fetchone()
+        new_user["balance"] = float(new_user["balance"])
+        return {"message": "User created successfully!", "user": new_user}
+    except Exception as e:
+        if isinstance(e, HTTPException):
+            raise e
+        raise HTTPException(status_code=500, detail=str(e))
+    finally:
+        cur.close()
+        conn.close()
+
+@app.put("/api/users/{user_id}")
+def update_user(user_id: int, user: UserUpdate):
+    if not db_url:
+        raise HTTPException(status_code=500, detail="Database isn't configured")
+        
+    try:
+        conn = psycopg2.connect(db_url)
+        conn.autocommit = True
+        cur = conn.cursor(cursor_factory=RealDictCursor)
+        
+        cur.execute(
+            "UPDATE users SET full_name = %s, email = %s, mobile_number = %s, balance = %s WHERE id = %s RETURNING id, full_name, email, mobile_number, balance",
+            (user.full_name, user.email, user.mobile_number, user.balance, user_id)
+        )
+        updated_user = cur.fetchone()
+        if not updated_user:
+            raise HTTPException(status_code=404, detail="User not found")
+            
+        updated_user["balance"] = float(updated_user["balance"])
+        return {"message": "User updated successfully!", "user": updated_user}
+    except Exception as e:
+        if isinstance(e, HTTPException):
+            raise e
+        raise HTTPException(status_code=500, detail=str(e))
+    finally:
+        cur.close()
+        conn.close()
+
+@app.delete("/api/users/{user_id}")
+def delete_user(user_id: int):
+    if not db_url:
+        raise HTTPException(status_code=500, detail="Database isn't configured")
+        
+    try:
+        conn = psycopg2.connect(db_url)
+        conn.autocommit = True
+        cur = conn.cursor(cursor_factory=RealDictCursor)
+        
+        # Also delete transactions associated with this user
+        cur.execute("DELETE FROM transactions WHERE sender_id = %s OR receiver_id = %s", (user_id, user_id))
+        cur.execute("DELETE FROM users WHERE id = %s RETURNING id", (user_id,))
+        deleted = cur.fetchone()
+        
+        if not deleted:
+            raise HTTPException(status_code=404, detail="User not found")
+            
+        return {"message": "User and associated transactions deleted successfully!"}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
     finally:

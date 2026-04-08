@@ -27,13 +27,13 @@ export default function LoginPage() {
         },
         body: JSON.stringify({ email, password }),
       });
-      
+
       const data = await res.json();
-      
+
       if (!res.ok) {
         throw new Error(data.detail || 'Failed to login');
       }
-      
+
       // Redirect to dashboard
       localStorage.setItem('user', JSON.stringify(data.user));
       router.push('/dashboard');
@@ -48,13 +48,13 @@ export default function LoginPage() {
     <div className={styles.container}>
       <div className={styles.bgImage}></div>
       <div className={styles.overlay}></div>
-      
+
       <div className={styles.loginCard}>
         <h1 className={styles.title}>Welcome Back</h1>
         <p className={styles.subtitle}>Enter your credentials to access your account</p>
-        
+
         {error && <div className={styles.errorMsg}>{error}</div>}
-        
+
         <form onSubmit={handleSubmit}>
           <div className={styles.formGroup}>
             <label className={styles.label} htmlFor="email">Email</label>
@@ -68,7 +68,7 @@ export default function LoginPage() {
               required
             />
           </div>
-          
+
           <div className={styles.formGroup}>
             <label className={styles.label} htmlFor="password">Password</label>
             <input
@@ -81,12 +81,12 @@ export default function LoginPage() {
               required
             />
           </div>
-          
+
           <button type="submit" className={styles.submitBtn} disabled={isLoading}>
             {isLoading ? 'Signing in...' : 'Sign In'}
           </button>
         </form>
-        
+
         <div className={styles.footer}>
           Don't have an account? <Link href="/signup" prefetch={false} className={styles.link}>Sign up here</Link>
         </div>

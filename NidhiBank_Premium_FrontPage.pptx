@@ -1,0 +1,26 @@
+python -c "
+from pptx import Presentation
+from pptx.util import Inches, Pt
+from pptx.dml.color import RGBColor
+prs = Presentation()
+slide = prs.slides.add_slide(prs.slide_layouts[6])
+# Add Background
+slide.shapes.add_picture('D:/saif/Banking/frontend/public/bground.png', 0, 0, width=prs.slide_width, height=prs.slide_height)
+# Add Logo
+slide.shapes.add_picture('D:/saif/Banking/frontend/public/logo.png', Inches(0.5), Inches(0.5), width=Inches(1.5))
+# Add Title
+txBox = slide.shapes.add_textbox(Inches(1), Inches(3), Inches(8), Inches(2))
+tf = txBox.text_frame
+p = tf.add_paragraph()
+p.text = 'NIDHIBANK'
+p.font.bold = True
+p.font.size = Pt(80)
+p.font.color.rgb = RGBColor(0, 255, 255) # Cyan
+# Add Subtitle
+p2 = tf.add_paragraph()
+p2.text = 'Next-Gen Digital Banking Infrastructure'
+p2.font.size = Pt(28)
+p2.font.color.rgb = RGBColor(200, 200, 200)
+prs.save('NidhiBank_Premium_FrontPage.pptx')
+print('Success! Open NidhiBank_Premium_FrontPage.pptx to see your new front page.')
+"
