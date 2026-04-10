@@ -47,11 +47,9 @@ export default function LoginPage() {
   return (
     <div className={styles.container}>
       <div className={styles.bgImage}></div>
-      <div className={styles.overlay}></div>
-
       <div className={styles.loginCard}>
-        <h1 className={styles.title}>Welcome Back</h1>
-        <p className={styles.subtitle}>Enter your credentials to access your account</p>
+        <h1 className={styles.title}>Personal Banking</h1>
+        <p className={styles.subtitle}>Secure access to your NidhiBank accounts</p>
 
         {error && <div className={styles.errorMsg}>{error}</div>}
 
@@ -89,6 +87,9 @@ export default function LoginPage() {
 
         <div className={styles.footer}>
           Don't have an account? <Link href="/signup" prefetch={false} className={styles.link}>Sign up here</Link>
+          <div style={{ marginTop: '15px', fontSize: '0.8rem', opacity: 0.6 }}>
+            Bank Staff? <Link href="/admin/login" className={styles.link}>Management Portal</Link>
+          </div>
         </div>
       </div>
     </div>
