@@ -62,15 +62,43 @@
   font-weight: 500;
 }
 
+.inputWrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+  width: 100%;
+}
+
 .inputGroup input {
   background: rgba(255, 255, 255, 0.03);
   border: 1px solid rgba(255, 255, 255, 0.1);
   border-radius: 12px;
   padding: 12px 15px;
+  padding-right: 45px;
   color: white;
   font-size: 14px;
   outline: none;
   transition: all 0.2s;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.eyeBtn {
+  position: absolute;
+  right: 12px;
+  background: none;
+  border: none;
+  color: #94a3b8;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 4px;
+  transition: color 0.2s;
+}
+
+.eyeBtn:hover {
+  color: white;
 }
 
 .inputGroup input:focus {
@@ -123,10 +151,16 @@
   opacity: 0.9;
 }
 
-.twoFactor {
+.twoFactorContainer {
   margin-top: 40px;
   padding-top: 30px;
   border-top: 1px solid rgba(255, 255, 255, 0.05);
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.twoFactor {
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -270,4 +304,116 @@ input:checked + .slider:before {
   .grid {
     grid-template-columns: 1fr;
   }
+}
+
+/* Password Strength Indicator */
+.strengthContainer {
+  margin-top: 8px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  animation: fadeIn 0.3s ease;
+}
+
+.strengthTrack {
+  height: 4px;
+  border-radius: 2px;
+  background-color: rgba(255, 255, 255, 0.1);
+  flex: 1;
+  overflow: hidden;
+}
+
+.strengthFill {
+  height: 100%;
+  border-radius: 2px;
+  transition: all 0.4s ease-out;
+}
+
+.strengthLabel {
+  font-size: 12px;
+  font-weight: 600;
+  width: 50px;
+  text-align: right;
+  letter-spacing: 0.5px;
+}
+
+.tfaAction {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  animation: fadeIn 0.3s ease;
+}
+
+.setupTfaBtn {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: white;
+  padding: 10px 16px;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+  width: max-content;
+}
+
+.setupTfaBtn:hover {
+  background: rgba(255, 255, 255, 0.1);
+  border-color: rgba(255, 255, 255, 0.2);
+}
+
+.tfaSmallText {
+  font-size: 11px;
+  color: #64748b;
+}
+
+.alertsContainer {
+  margin-top: 40px;
+  padding-top: 30px;
+  border-top: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.alertsList {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+  margin-top: 20px;
+}
+
+.checkLabel {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  cursor: pointer;
+}
+
+.checkInput {
+  appearance: none;
+  width: 18px;
+  height: 18px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 4px;
+  background-color: rgba(255, 255, 255, 0.02);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s;
+  cursor: pointer;
+}
+
+.checkInput:checked {
+  background-color: #6366f1;
+  border-color: #6366f1;
+}
+
+.checkInput:checked::after {
+  content: '✓';
+  color: white;
+  font-size: 12px;
+  font-weight: bold;
+}
+
+.checkText {
+  font-size: 14px;
+  color: #e2e8f0;
 }

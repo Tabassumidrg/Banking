@@ -313,6 +313,25 @@ def transfer_funds(req: TransferRequest):
         if receiver["id"] == req.sender_id:
             raise HTTPException(status_code=400, detail="Cannot transfer to yourself")
 
+        # Daily Limits Check (2.5 Lakhs Sent/Received per day)
+        cur.execute("""
+            SELECT COALESCE(SUM(amount), 0) as daily_sent
+            FROM transactions
+            WHERE sender_id = %s AND DATE(created_at) = CURRENT_DATE
+        """, (req.sender_id,))
+        daily_sent = float(cur.fetchone()["daily_sent"])
+        if daily_sent + req.amount > 250000:
+            raise HTTPException(status_code=400, detail="Daily sending limit of ₹2,50,000 exceeded. Please wait until tomorrow.")
+            
+        cur.execute("""
+            SELECT COALESCE(SUM(amount), 0) as daily_received
+            FROM transactions
+            WHERE receiver_id = %s AND DATE(created_at) = CURRENT_DATE
+        """, (receiver["id"],))
+        daily_received = float(cur.fetchone()["daily_received"])
+        if daily_received + req.amount > 250000:
+            raise HTTPException(status_code=400, detail="Receiver's daily receiving limit of ₹2,50,000 exceeded. Please wait until tomorrow.")
+
         # 3. Perform transfer via SQL Transaction
         cur.execute("BEGIN;")
         try:
