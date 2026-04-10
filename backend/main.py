@@ -29,6 +29,7 @@ class UserSignup(BaseModel):
     email: str
     mobile_number: str
     password: str
+    role: str = "user"
 
 class UserLogin(BaseModel):
     email: str
@@ -51,12 +52,14 @@ class UserAdminCreate(BaseModel):
     mobile_number: str
     password: str
     balance: float = 0.0
+    role: str = "user"
 
 class UserUpdate(BaseModel):
     full_name: str
     email: str
     mobile_number: str
     balance: float
+    role: str = "user"
 
 @app.get("/health")
 def health_check():
@@ -85,8 +88,8 @@ def signup(user: UserSignup):
         salt = bcrypt.gensalt()
         hashed_pwd = bcrypt.hashpw(password_bytes, salt).decode('utf-8')
         cur.execute(
-            "INSERT INTO users (full_name, email, mobile_number, password_hash) VALUES (%s, %s, %s, %s) RETURNING id, full_name, email, mobile_number",
-            (user.full_name, user.email, user.mobile_number, hashed_pwd)
+            "INSERT INTO users (full_name, email, mobile_number, password_hash, role) VALUES (%s, %s, %s, %s, %s) RETURNING id, full_name, email, mobile_number, role",
+            (user.full_name, user.email, user.mobile_number, hashed_pwd, user.role)
         )
         new_user = cur.fetchone()
         return {"message": "Account created successfully!", "user": new_user}
@@ -110,7 +113,7 @@ def signin(user: UserLogin):
         
     try:
         cur = conn.cursor(cursor_factory=RealDictCursor)
-        cur.execute("SELECT id, full_name, email, password_hash FROM users WHERE email = %s", (user.email,))
+        cur.execute("SELECT id, full_name, email, password_hash, role FROM users WHERE email = %s", (user.email,))
         db_user = cur.fetchone()
         
         if not db_user:
@@ -122,7 +125,7 @@ def signin(user: UserLogin):
         if not bcrypt.checkpw(password_bytes, db_hash_bytes):
             raise HTTPException(status_code=401, detail="Invalid email or password")
             
-        return {"message": "Login successful", "user": {"id": db_user["id"], "full_name": db_user["full_name"], "email": db_user["email"]}}
+        return {"message": "Login successful", "user": {"id": db_user["id"], "full_name": db_user["full_name"], "email": db_user["email"], "role": db_user["role"]}}
     except Exception as e:
         if isinstance(e, HTTPException):
             raise e
@@ -182,7 +185,7 @@ def list_users():
         conn = psycopg2.connect(db_url)
         cur = conn.cursor(cursor_factory=RealDictCursor)
         
-        cur.execute("SELECT id, full_name, email, mobile_number, balance, created_at FROM users ORDER BY created_at DESC")
+        cur.execute("SELECT id, full_name, email, mobile_number, balance, role, created_at FROM users ORDER BY created_at DESC")
         users = cur.fetchall()
         
         # Convert balance to float for JSON serialization
@@ -216,8 +219,8 @@ def admin_create_user(user: UserAdminCreate):
         hashed_pwd = bcrypt.hashpw(password_bytes, salt).decode('utf-8')
         
         cur.execute(
-            "INSERT INTO users (full_name, email, mobile_number, password_hash, balance) VALUES (%s, %s, %s, %s, %s) RETURNING id, full_name, email, mobile_number, balance",
-            (user.full_name, user.email, user.mobile_number, hashed_pwd, user.balance)
+            "INSERT INTO users (full_name, email, mobile_number, password_hash, balance, role) VALUES (%s, %s, %s, %s, %s, %s) RETURNING id, full_name, email, mobile_number, balance, role",
+            (user.full_name, user.email, user.mobile_number, hashed_pwd, user.balance, user.role)
         )
         new_user = cur.fetchone()
         new_user["balance"] = float(new_user["balance"])
@@ -241,8 +244,8 @@ def update_user(user_id: int, user: UserUpdate):
         cur = conn.cursor(cursor_factory=RealDictCursor)
         
         cur.execute(
-            "UPDATE users SET full_name = %s, email = %s, mobile_number = %s, balance = %s WHERE id = %s RETURNING id, full_name, email, mobile_number, balance",
-            (user.full_name, user.email, user.mobile_number, user.balance, user_id)
+            "UPDATE users SET full_name = %s, email = %s, mobile_number = %s, balance = %s, role = %s WHERE id = %s RETURNING id, full_name, email, mobile_number, balance, role",
+            (user.full_name, user.email, user.mobile_number, user.balance, user.role, user_id)
         )
         updated_user = cur.fetchone()
         if not updated_user:

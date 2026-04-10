@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import styles from './users.module.css';
 
 export default function UsersPage() {
@@ -15,11 +16,14 @@ export default function UsersPage() {
     email: '',
     mobile_number: '',
     password: '',
-    balance: 0
+    balance: 0,
+    role: 'user'
   });
   const [formLoading, setFormLoading] = useState(false);
 
   const backendUrl = process.env.NEXT_PUBLIC_API_URL || 'https://banking-backend-api.onrender.com';
+
+  const router = useRouter();
 
   const fetchUsers = async () => {
     try {
@@ -36,6 +40,17 @@ export default function UsersPage() {
   };
 
   useEffect(() => {
+    const storedUser = localStorage.getItem('user');
+    if (storedUser) {
+      const u = JSON.parse(storedUser);
+      if (u.role !== 'admin') {
+        router.push('/dashboard');
+        return;
+      }
+    } else {
+      router.push('/login');
+      return;
+    }
     fetchUsers();
   }, []);
 
@@ -54,7 +69,8 @@ export default function UsersPage() {
         email: user.email || '',
         mobile_number: user.mobile_number || '',
         password: '', // Don't show password on edit
-        balance: user.balance || 0
+        balance: user.balance || 0,
+        role: user.role || 'user'
       });
     } else {
       setIsEditing(false);
@@ -64,7 +80,8 @@ export default function UsersPage() {
         email: '',
         mobile_number: '',
         password: '',
-        balance: 0
+        balance: 0,
+        role: 'user'
       });
     }
     setShowModal(true);
@@ -77,7 +94,8 @@ export default function UsersPage() {
       email: '',
       mobile_number: '',
       password: '',
-      balance: 0
+      balance: 0,
+      role: 'user'
     });
   };
 
@@ -171,6 +189,7 @@ export default function UsersPage() {
            <span className={`${styles.colIfsc} ${styles.hideTablet}`}>IFSC</span>
            <span className={styles.colBalance}>Balance</span>
            <span className={`${styles.colJoined} ${styles.hideMobile}`}>Joined</span>
+           <span className={styles.colRole}>Role</span>
            <span className={styles.colActions}>Actions</span>
         </div>
         
@@ -198,6 +217,12 @@ export default function UsersPage() {
             
             <div className={`${styles.joinedDetails} ${styles.colJoined} ${styles.hideMobile}`}>
                <span className={styles.joinedDate}>{new Date(u.created_at).toLocaleDateString()}</span>
+            </div>
+
+            <div className={styles.colRole}>
+              <span className={`${styles.roleBadge} ${u.role === 'admin' ? styles.adminBadge : styles.userBadge}`}>
+                {u.role.toUpperCase()}
+              </span>
             </div>
 
             <div className={styles.actionBtns}>
@@ -281,6 +306,16 @@ export default function UsersPage() {
                     value={formData.balance}
                     onChange={(e) => setFormData({...formData, balance: e.target.value})}
                   />
+                </div>
+                <div className={`${styles.formGroup} ${styles.fullWidth}`}>
+                  <label>User Role</label>
+                  <select 
+                    value={formData.role}
+                    onChange={(e) => setFormData({...formData, role: e.target.value})}
+                  >
+                    <option value="user">Standard User</option>
+                    <option value="admin">Administrator</option>
+                  </select>
                 </div>
               </div>
               <div className={styles.modalFooter}>

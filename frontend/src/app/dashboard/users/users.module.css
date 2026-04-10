@@ -95,7 +95,7 @@
 
 .tableHeader {
   display: grid;
-  grid-template-columns: 2fr 1.5fr 1fr 1fr 1fr 0.8fr;
+  grid-template-columns: 2fr 1.5fr 1fr 1fr 1fr 1fr 0.8fr;
   padding: 15px 25px;
   background: rgba(255, 255, 255, 0.03);
   border-bottom: 1px solid rgba(255, 255, 255, 0.1);
@@ -108,7 +108,7 @@
 
 .userRow {
   display: grid;
-  grid-template-columns: 2fr 1.5fr 1fr 1fr 1fr 0.8fr;
+  grid-template-columns: 2fr 1.5fr 1fr 1fr 1fr 1fr 0.8fr;
   padding: 20px 25px;
   border-bottom: 1px solid rgba(255, 255, 255, 0.05);
   align-items: center;
@@ -184,6 +184,26 @@
 .joinedDate {
   font-size: 13px;
   color: #64748b;
+}
+
+.roleBadge {
+  font-size: 10px;
+  font-weight: 800;
+  padding: 4px 10px;
+  border-radius: 20px;
+  letter-spacing: 0.5px;
+}
+
+.adminBadge {
+  background: rgba(234, 88, 12, 0.1);
+  color: #ea580c;
+  border: 1px solid rgba(234, 88, 12, 0.2);
+}
+
+.userBadge {
+  background: rgba(99, 102, 241, 0.1);
+  color: #6366f1;
+  border: 1px solid rgba(99, 102, 241, 0.2);
 }
 
 .noResults, .loading {
@@ -298,6 +318,21 @@
   letter-spacing: 0.05em;
 }
 
+.formGroup select {
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 12px;
+  padding: 12px 15px;
+  color: white;
+  font-size: 14px;
+  outline: none;
+  transition: all 0.3s;
+}
+
+.formGroup select option {
+  background: #0f172a;
+}
+
 .formGroup input {
   background: rgba(255, 255, 255, 0.03);
   border: 1px solid rgba(255, 255, 255, 0.1);
@@ -361,7 +396,10 @@
 /* Responsiveness */
 @media (max-width: 1024px) {
   .tableHeader, .userRow {
-    grid-template-columns: 2fr 1.5fr 1fr 1fr 0.8fr;
+    grid-template-columns: 2fr 1.5fr 1fr 1fr 1fr 0.8fr;
+  }
+  .colRole {
+    display: none;
   }
   .hideTablet {
     display: none;
