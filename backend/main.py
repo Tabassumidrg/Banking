@@ -65,6 +65,11 @@ class UserUpdate(BaseModel):
 def health_check():
     return {"status": "ok", "message": "Nidhi Bank Backend is running"}
 
+@app.get("/api/debug/db")
+def debug_db():
+    url = os.environ.get("DATABASE_URL", "NOT_SET")
+    return {"host_prefix": url.split("@")[-1][:20] if "@" in url else "No @ found"}
+
 @app.post("/api/auth/signup")
 def signup(user: UserSignup):
     if not db_url:
