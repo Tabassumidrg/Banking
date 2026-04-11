@@ -46,7 +46,7 @@ def reset_admin():
         """, (ADMIN_NAME, ADMIN_EMAIL, ADMIN_MOBILE, hashed, 0.0))
 
         result = cur.fetchone()
-        print(f"\n✅ Admin account ready: ID={result[0]}, Email={result[1]}, Role={result[2]}")
+        print(f"\n[SUCCESS] Admin account ready: ID={result[0]}, Email={result[1]}, Role={result[2]}")
         print(f"\n📋 Management Portal Credentials:")
         print(f"   Email:    {ADMIN_EMAIL}")
         print(f"   Password: {ADMIN_PASSWORD}")

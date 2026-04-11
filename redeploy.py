@@ -9,10 +9,10 @@ import subprocess
 PROJECT_NAME = "nidhibank"
 GIT_REMOTE = "origin"
 
-# Tokens (Loaded from d:\saif\Banking\tokens)
+# Tokens (Loaded from tokens file in root)
 def get_tokens():
     tokens = {}
-    tokens_path = r"d:\saif\Banking\tokens"
+    tokens_path = os.path.join(os.path.dirname(__file__), "tokens")
     if os.path.exists(tokens_path):
         with open(tokens_path, "r") as f:
             lines = f.readlines()
@@ -27,7 +27,7 @@ TOKENS = get_tokens()
 VERCEL_TOKEN = TOKENS.get("VERCEL")
 RENDER_TOKEN = TOKENS.get("RENDER")
 RENDER_SERVICE_ID = "srv-d7142kogjchc73983d80"
-FRONTEND_DIR = r"d:\saif\Banking\frontend"
+FRONTEND_DIR = os.path.join(os.path.dirname(__file__), "frontend")
 
 def get_current_branch():
     try:
@@ -37,16 +37,16 @@ def get_current_branch():
         return "main"
 
 def run_git_sync():
-    print("--- 📚 Git Sync ---")
+    print("--- Git Sync ---")
     branch = get_current_branch()
     print(f"Current branch: {branch}")
     try:
         subprocess.run(["git", "add", "."], check=True)
         subprocess.run(["git", "commit", "-m", "Manual redeploy via automation"], capture_output=True) # OK if no changes
         subprocess.run(["git", "push", GIT_REMOTE, branch], check=True)
-        print(f"✅ Git push successful to {branch}!")
+        print(f"[SUCCESS] Git push successful to {branch}!")
     except subprocess.CalledProcessError as e:
-        print(f"❌ Git error: {e}")
+        print(f"[ERROR] Git error: {e}")
         return False
     return True
 
@@ -72,9 +72,9 @@ def get_files(directory):
     return files_to_deploy
 
 def deploy_vercel():
-    print("--- 🔺 Vercel Deployment ---")
+    print("--- Vercel Deployment ---")
     if not VERCEL_TOKEN:
-        print("❌ Missing Vercel Token")
+        print("[ERROR] Missing Vercel Token")
         return
         
     url = "https://api.vercel.com/v13/deployments"
@@ -92,14 +92,14 @@ def deploy_vercel():
     try:
         with urllib.request.urlopen(req) as resp:
             data = json.loads(resp.read().decode('utf-8'))
-            print(f"✅ Vercel Success: https://{data.get('url')}")
+            print(f"[SUCCESS] Vercel Success: https://{data.get('url')}")
     except Exception as e:
-        print(f"❌ Vercel Error: {e}")
+        print(f"[ERROR] Vercel Error: {e}")
 
 def deploy_render():
-    print("--- ☁️ Render Deployment ---")
+    print("--- Render Deployment ---")
     if not RENDER_TOKEN:
-        print("❌ Missing Render Token")
+        print("[ERROR] Missing Render Token")
         return
         
     url = f"https://api.render.com/v1/services/{RENDER_SERVICE_ID}/deploys"
@@ -113,15 +113,15 @@ def deploy_render():
     try:
         with urllib.request.urlopen(req) as resp:
             data = json.loads(resp.read().decode('utf-8'))
-            print(f"✅ Render Success: Build {data.get('id')} started.")
+            print(f"[SUCCESS] Render Success: Build {data.get('id')} started.")
     except Exception as e:
-        print(f"❌ Render Error: {e}")
+        print(f"[ERROR] Render Error: {e}")
 
 def main():
     if run_git_sync():
-        print("✅ Vercel deployment automatically triggered via GitHub push!")
+        print("[SUCCESS] Vercel deployment automatically triggered via GitHub push!")
         deploy_render()
-        print("\n🚀 All deployments initiated!")
+        print("\n[INFO] All deployments initiated!")
 
 if __name__ == "__main__":
     main()
