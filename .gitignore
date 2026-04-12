@@ -38,3 +38,4 @@ db/test_output.txt
 db/render_output.txt
 db/test_render.py
 db/test_connection.py
+.vercel

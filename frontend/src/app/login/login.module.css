@@ -183,6 +183,48 @@
 .link:hover {
   color: #fff;
 }
+
+/* Portal Toggle */
+.portalToggle {
+  display: flex;
+  background: rgba(0, 0, 0, 0.3);
+  border-radius: 14px;
+  padding: 5px;
+  gap: 4px;
+  margin-bottom: 1.5rem;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.toggleOption {
+  flex: 1;
+  text-align: center;
+  padding: 0.7rem 1rem;
+  border-radius: 10px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #a1a1aa;
+  text-decoration: none;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  letter-spacing: 0.01em;
+}
+
+.toggleOption:hover {
+  color: #e4e4e7;
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.toggleActive {
+  background: linear-gradient(135deg, #5865f2, #7c3aed);
+  color: #fff;
+  box-shadow: 0 4px 15px -3px rgba(88, 101, 242, 0.4);
+}
+
+.toggleActive:hover {
+  background: linear-gradient(135deg, #5865f2, #7c3aed);
+  color: #fff;
+}
+
 @media (max-width: 480px) {
   .loginCard {
     padding: 2rem 1.5rem;
@@ -191,5 +233,10 @@
 
   .title {
     font-size: 1.75rem;
+  }
+
+  .toggleOption {
+    font-size: 0.75rem;
+    padding: 0.6rem 0.5rem;
   }
 }

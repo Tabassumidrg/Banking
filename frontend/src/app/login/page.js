@@ -48,6 +48,16 @@ export default function LoginPage() {
     <div className={styles.container}>
       <div className={styles.bgImage}></div>
       <div className={styles.loginCard}>
+        {/* Portal Toggle */}
+        <div className={styles.portalToggle}>
+          <span className={`${styles.toggleOption} ${styles.toggleActive}`}>
+            🏠 Personal Use
+          </span>
+          <Link href="/admin/login" className={styles.toggleOption}>
+            🏢 Management Portal
+          </Link>
+        </div>
+
         <h1 className={styles.title}>Personal Banking</h1>
         <p className={styles.subtitle}>Secure access to your NidhiBank accounts</p>
 
@@ -87,9 +97,6 @@ export default function LoginPage() {
 
         <div className={styles.footer}>
           Don't have an account? <Link href="/signup" prefetch={false} className={styles.link}>Sign up here</Link>
-          <div style={{ marginTop: '15px', fontSize: '0.8rem', opacity: 0.6 }}>
-            Bank Staff? <Link href="/admin/login" className={styles.link}>Management Portal</Link>
-          </div>
         </div>
       </div>
     </div>

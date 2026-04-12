@@ -53,6 +53,16 @@ export default function AdminLoginPage() {
       <div className={styles.overlay}></div>
 
       <div className={styles.loginCard}>
+        {/* Portal Toggle */}
+        <div className={styles.portalToggle}>
+          <Link href="/login" className={styles.toggleOption}>
+            🏠 Personal Use
+          </Link>
+          <span className={`${styles.toggleOption} ${styles.toggleActive}`}>
+            🏢 Management Portal
+          </span>
+        </div>
+
         <div className={styles.logoArea}>
           <div className={styles.logoIcon}>NB</div>
           <h1 className={styles.title}>NidhiBank</h1>
