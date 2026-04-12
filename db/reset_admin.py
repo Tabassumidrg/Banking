@@ -12,7 +12,7 @@ if not db_url:
 
 # New admin credentials
 ADMIN_EMAIL = "admin@nidhi.bank"
-ADMIN_PASSWORD = "Admin@1234"
+ADMIN_PASSWORD = "admin123"
 ADMIN_NAME = "Bank Administrator"
 ADMIN_MOBILE = "9000000001"
 
@@ -24,6 +24,7 @@ def reset_admin():
 
         # Hash the password
         hashed = bcrypt.hashpw(ADMIN_PASSWORD.encode('utf-8'), bcrypt.gensalt()).decode('utf-8')
+        print(f"Generated hash: {hashed}")
 
         # Check if admin already exists
         cur.execute("SELECT id, email, role FROM users WHERE email = %s OR role = 'admin'", (ADMIN_EMAIL,))

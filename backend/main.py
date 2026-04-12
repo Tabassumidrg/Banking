@@ -64,7 +64,7 @@ class UserUpdate(BaseModel):
 
 @app.get("/health")
 def health_check():
-    return {"status": "ok", "message": "Nidhi Bank Backend is running"}
+    return {"status": "ok", "message": "Nidhi Bank Backend is running - Version: 1.0.2-Verified"}
 
 @app.get("/api/debug/db")
 def debug_db():
