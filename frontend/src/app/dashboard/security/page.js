@@ -244,21 +244,6 @@ export default function SecurityPage() {
             </div>
           </div>
 
-          <div className={styles.alertsContainer}>
-            <div className={styles.tfaInfo}>
-              <h4 className={styles.tfaTitle}>Security Alerts</h4>
-            </div>
-            <div className={styles.alertsList}>
-              <label className={styles.checkLabel}>
-                <input type="checkbox" defaultChecked className={styles.checkInput} />
-                <span className={styles.checkText}>Notify on new login</span>
-              </label>
-              <label className={styles.checkLabel}>
-                <input type="checkbox" defaultChecked className={styles.checkInput} />
-                <span className={styles.checkText}>Notify on password change</span>
-              </label>
-            </div>
-          </div>
         </div>
 
         <div className={styles.section}>
