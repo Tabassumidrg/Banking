@@ -138,21 +138,23 @@ function DashboardContent() {
       <div className={styles.grid}>
         {isAdmin ? (
           <>
+          <>
             <div className={`${styles.statCard} ${styles.adminCard}`}>
               <span className={styles.cardLabel}>Total Branch Assets</span>
               <span className={styles.cardValue}>₹{branchStats.total_balance.toLocaleString('en-IN', { minimumFractionDigits: 2 })}</span>
-              <span className={styles.adminTag}>Branch Head View</span>
+              <span className={styles.adminTag} style={{ color: '#4ade80' }}>↑ Stable Branch Growth</span>
             </div>
             <div className={`${styles.statCard} ${styles.adminCard}`}>
               <span className={styles.cardLabel}>Active Members</span>
               <span className={styles.cardValue}>{branchStats.total_users} People</span>
-              <span className={styles.adminTag}>Growth: +2 new this week</span>
+              <span className={styles.adminTag} style={{ color: '#fbbf24' }}>+2 Joined this week</span>
             </div>
             <div className={`${styles.statCard} ${styles.adminCard}`}>
               <span className={styles.cardLabel}>Transactions Today</span>
               <span className={styles.cardValue}>{branchStats.transactions_today}</span>
-              <span className={styles.adminTag}>System Online</span>
+              <span className={styles.adminTag} style={{ color: '#60a5fa' }}>System Load: Low</span>
             </div>
+          </>
           </>
         ) : (
           <>
@@ -192,7 +194,7 @@ function DashboardContent() {
                     name={`From: ${t.sender_name} To: ${t.receiver_name}`}
                     date={new Date(t.created_at).toLocaleDateString()} 
                     amount={`₹${t.amount.toLocaleString('en-IN')}`}
-                    positive={true}
+                    type="ADMIN_VIEW"
                     isAdmin={true}
                   />
                 ))
@@ -206,6 +208,7 @@ function DashboardContent() {
                     date={new Date(t.created_at).toLocaleDateString()} 
                     amount={t.sender_id === user.id ? `-₹${t.amount.toLocaleString('en-IN')}` : `+₹${t.amount.toLocaleString('en-IN')}`}
                     positive={t.sender_id !== user.id}
+                    type={t.sender_id === user.id ? 'DEBIT' : 'CREDIT'}
                   />
                 ))
               ) : <p className={styles.noData}>No recent transactions</p>
@@ -215,16 +218,41 @@ function DashboardContent() {
 
         {/* Action Center */}
         <div className={styles.section}>
-          <div className={styles.sectionTitle}>{isAdmin ? 'Branch Head Controls' : 'Quick Transfer'}</div>
+          <div className={styles.sectionTitle}>{isAdmin ? 'Fraud & High-Value Alerts' : 'Quick Transfer'}</div>
           {isAdmin ? (
             <div className={styles.adminActionBox}>
-              <p className={styles.adminHint}>As Branch Head, you can manage all users and transactions from the "Branch Management" portal.</p>
-              <button className={styles.manageBtn} onClick={() => router.push('/dashboard/users')}>
-                Go to Management Portal
-              </button>
-              <div className={styles.systemStatus}>
-                <div className={styles.statusDot}></div>
-                <span>Server Status: Operational</span>
+              <div className={styles.alertList}>
+                {(branchStats.high_value_alerts || []).length > 0 ? branchStats.high_value_alerts.map(alert => (
+                  <div key={alert.id} className={styles.alertItem}>
+                    <div className={styles.alertHeader}>
+                      <span className={styles.alertBadge}>High Value</span>
+                      <span className={styles.alertTime}>{new Date(alert.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
+                    </div>
+                    <div className={styles.alertText}>
+                      <strong>₹{alert.amount.toLocaleString('en-IN')}</strong> transferred from <em>{alert.sender_name}</em> to <em>{alert.receiver_name}</em>
+                    </div>
+                  </div>
+                )) : <p className={styles.noAlerts}>No recent alerts detected. System secure.</p>}
+              </div>
+
+              <div className={styles.systemStatusBox}>
+                <div className={styles.statusRow}>
+                  <div className={styles.statusMain}>
+                     <div className={styles.statusDot}></div>
+                     <span>Core Banking Engine: <strong>Operational</strong></span>
+                  </div>
+                  <span className={styles.statusTime}>99.9% Uptime</span>
+                </div>
+                <div className={styles.statusDetails}>
+                   <div className={styles.detailItem}>
+                      <label>Database Latency</label>
+                      <span>12ms</span>
+                   </div>
+                   <div className={styles.detailItem}>
+                      <label>Active Admin Sessions</label>
+                      <span>1 Active</span>
+                   </div>
+                </div>
               </div>
             </div>
           ) : (
@@ -273,28 +301,33 @@ function DashboardContent() {
   );
 }
 
-function TransactionItem({ name, date, amount, positive, isAdmin }) {
+function TransactionItem({ name, date, amount, positive, isAdmin, type }) {
+  const getIcon = () => {
+    if (isAdmin) return <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" /></svg>;
+    if (type === 'CREDIT') return <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="m5 12 7-7 7 7"/><path d="M12 19V5"/></svg>;
+    if (type === 'DEBIT') return <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="m19 12-7 7-7-7"/><path d="M12 5v14"/></svg>;
+    return <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="2" y="5" width="20" height="14" rx="2" /><line x1="2" y1="10" x2="22" y2="10" /></svg>;
+  };
+
+  const getIconClass = () => {
+    if (isAdmin) return styles.adminIcon;
+    if (type === 'CREDIT') return styles.creditIcon;
+    if (type === 'DEBIT') return styles.debitIcon;
+    return '';
+  };
+
   return (
     <div className={styles.transItem}>
       <div className={styles.transInfo}>
-        <div className={`${styles.transIcon} ${isAdmin ? styles.adminIcon : ''}`}>
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-            {isAdmin ? (
-                <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
-            ) : (
-                <>
-                    <rect x="2" y="5" width="20" height="14" rx="2" />
-                    <line x1="2" y1="10" x2="22" y2="10" />
-                </>
-            )}
-          </svg>
+        <div className={`${styles.transIcon} ${getIconClass()}`}>
+          {getIcon()}
         </div>
         <div className={styles.transDetails}>
           <span className={styles.transName}>{name}</span>
           <span className={styles.transDate}>{date}</span>
         </div>
       </div>
-      <span className={positive ? styles.amountPos : styles.amountNeg}>
+      <span className={positive || isAdmin ? styles.amountPos : styles.amountNeg}>
         {amount}
       </span>
     </div>

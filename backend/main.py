@@ -1,11 +1,12 @@
 import os
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, Request
 from pydantic import BaseModel
 import psycopg2
 from psycopg2.extras import RealDictCursor
 import bcrypt
 from fastapi.middleware.cors import CORSMiddleware
 from dotenv import load_dotenv
+from datetime import datetime, timedelta
 
 # Try to load local .env if it exists
 load_dotenv(dotenv_path="../db/.env")
@@ -70,6 +71,21 @@ def debug_db():
     url = os.environ.get("DATABASE_URL", "NOT_SET")
     return {"host_prefix": url.split("@")[-1][:20] if "@" in url else "No @ found"}
 
+def log_event(user_id: int, action: str, details: str, ip: str = None):
+    if not db_url: return
+    try:
+        conn = psycopg2.connect(db_url)
+        conn.autocommit = True
+        cur = conn.cursor()
+        cur.execute(
+            "INSERT INTO audit_logs (user_id, action, details, ip_address) VALUES (%s, %s, %s, %s)",
+            (user_id, action, details, ip)
+        )
+        cur.close()
+        conn.close()
+    except Exception as e:
+        print(f"Logging error: {e}")
+
 @app.post("/api/auth/signup")
 def signup(user: UserSignup):
     if not db_url:
@@ -97,6 +113,7 @@ def signup(user: UserSignup):
             (user.full_name, user.email, user.mobile_number, hashed_pwd, user.role)
         )
         new_user = cur.fetchone()
+        log_event(new_user["id"], "SIGNUP", f"New account created: {new_user['email']}")
         return {"message": "Account created successfully!", "user": new_user}
     except Exception as e:
         if isinstance(e, HTTPException):
@@ -128,8 +145,10 @@ def signin(user: UserLogin):
         db_hash_bytes = db_user["password_hash"].encode('utf-8')
         
         if not bcrypt.checkpw(password_bytes, db_hash_bytes):
+            log_event(db_user["id"], "LOGIN_FAILED", f"Failed login attempt for {user.email}")
             raise HTTPException(status_code=401, detail="Invalid email or password")
             
+        log_event(db_user["id"], "LOGIN_SUCCESS", f"User logged in: {user.email}")
         return {"message": "Login successful", "user": {"id": db_user["id"], "full_name": db_user["full_name"], "email": db_user["email"], "role": db_user["role"]}}
     except Exception as e:
         if isinstance(e, HTTPException):
@@ -208,16 +227,60 @@ def get_branch_stats():
             FROM transactions t
             LEFT JOIN users u_s ON t.sender_id = u_s.id
             LEFT JOIN users u_r ON t.receiver_id = u_r.id
-            ORDER BY t.created_at DESC LIMIT 5
+            ORDER BY t.created_at DESC LIMIT 10
         """)
         recent_global_transactions = cur.fetchall()
+
+        # 5. High-Value Alerts (Transactions > 1,00,000)
+        cur.execute("""
+            SELECT t.*, u_s.full_name as sender_name, u_r.full_name as receiver_name 
+            FROM transactions t
+            LEFT JOIN users u_s ON t.sender_id = u_s.id
+            LEFT JOIN users u_r ON t.receiver_id = u_r.id
+            WHERE t.amount >= 100000
+            ORDER BY t.created_at DESC LIMIT 5
+        """)
+        high_value_alerts = cur.fetchall()
+
+        # 6. Branch Growth (Users per day for last 7 days)
+        cur.execute("""
+            SELECT DATE(created_at) as date, COUNT(*) as count
+            FROM users
+            WHERE created_at >= CURRENT_DATE - INTERVAL '7 days'
+            GROUP BY DATE(created_at)
+            ORDER BY DATE(created_at) ASC
+        """)
+        growth_raw = cur.fetchall()
         
         return {
             "total_users": total_users,
             "total_balance": total_balance,
             "transactions_today": transactions_today,
-            "recent_transactions": recent_global_transactions
+            "recent_transactions": recent_global_transactions,
+            "high_value_alerts": high_value_alerts,
+            "growth_trend": growth_raw
         }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+    finally:
+        cur.close()
+        conn.close()
+
+@app.get("/api/admin/audit-logs")
+def get_audit_logs():
+    if not db_url:
+        raise HTTPException(status_code=500, detail="Database isn't configured")
+    try:
+        conn = psycopg2.connect(db_url)
+        cur = conn.cursor(cursor_factory=RealDictCursor)
+        cur.execute("""
+            SELECT a.*, u.email as user_email, u.full_name as user_name
+            FROM audit_logs a
+            LEFT JOIN users u ON a.user_id = u.id
+            ORDER BY a.created_at DESC LIMIT 50
+        """)
+        logs = cur.fetchall()
+        return logs
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
     finally:
@@ -272,6 +335,7 @@ def admin_create_user(user: UserAdminCreate):
         )
         new_user = cur.fetchone()
         new_user["balance"] = float(new_user["balance"])
+        log_event(None, "ADMIN_CREATE_USER", f"Admin created user: {new_user['email']}")
         return {"message": "User created successfully!", "user": new_user}
     except Exception as e:
         if isinstance(e, HTTPException):
@@ -300,6 +364,7 @@ def update_user(user_id: int, user: UserUpdate):
             raise HTTPException(status_code=404, detail="User not found")
             
         updated_user["balance"] = float(updated_user["balance"])
+        log_event(None, "ADMIN_UPDATE_USER", f"Admin updated user ID: {user_id} ({updated_user['email']})")
         return {"message": "User updated successfully!", "user": updated_user}
     except Exception as e:
         if isinstance(e, HTTPException):
@@ -327,6 +392,7 @@ def delete_user(user_id: int):
         if not deleted:
             raise HTTPException(status_code=404, detail="User not found")
             
+        log_event(None, "ADMIN_DELETE_USER", f"Admin deleted user ID: {user_id}")
         return {"message": "User and associated transactions deleted successfully!"}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
@@ -400,6 +466,7 @@ def transfer_funds(req: TransferRequest):
             cur.execute("ROLLBACK;")
             raise e
             
+        log_event(req.sender_id, "TRANSFER_SENT", f"Transfer of ₹{req.amount} to {req.receiver_email}")
         return {"message": "Transfer successful!"}
         
     except Exception as e:

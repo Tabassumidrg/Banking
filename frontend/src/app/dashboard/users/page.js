@@ -20,6 +20,9 @@ export default function UsersPage() {
     role: 'user'
   });
   const [formLoading, setFormLoading] = useState(false);
+  const [showInsightModal, setShowInsightModal] = useState(false);
+  const [insightData, setInsightData] = useState({ user: null, history: [] });
+  const [insightLoading, setInsightLoading] = useState(false);
 
   const backendUrl = process.env.NEXT_PUBLIC_API_URL || 'https://banking-backend-api.onrender.com';
 
@@ -151,6 +154,23 @@ export default function UsersPage() {
     }
   };
 
+  const handleOpenInsight = async (user) => {
+    setInsightLoading(true);
+    setInsightData({ user, history: [] });
+    setShowInsightModal(true);
+    try {
+      const res = await fetch(`${backendUrl}/api/dashboard/summary/${user.id}`);
+      if (res.ok) {
+        const data = await res.json();
+        setInsightData({ user, history: data.transactions || [] });
+      }
+    } catch (err) {
+      console.error("Insight fetch failed", err);
+    } finally {
+      setInsightLoading(false);
+    }
+  };
+
   const getMockAccNo = (id) => `8899${id.toString().padStart(8, '0')}`;
   const mockIFSC = 'NB0001';
 
@@ -227,6 +247,13 @@ export default function UsersPage() {
             </div>
 
             <div className={styles.actionBtns}>
+              <button 
+                className={`${styles.iconBtn} ${styles.insightBtn}`} 
+                onClick={() => handleOpenInsight(u)}
+                title="View Insight"
+              >
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M2.121 15.121A3 3 0 1 1 6.364 19.364l-4.243-4.243zM6.364 19.364l8.485-8.485M21.221 2.779a3 3 0 1 1-4.243 4.243l-8.485 8.485"/></svg>
+              </button>
               <button 
                 className={`${styles.iconBtn} ${styles.editBtn}`} 
                 onClick={() => handleOpenModal(u)}
@@ -326,6 +353,64 @@ export default function UsersPage() {
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {showInsightModal && (
+        <div className={styles.modalOverlay}>
+          <div className={`${styles.modal} ${styles.insightModal}`}>
+             <div className={styles.modalHeader}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
+                  <div className={styles.avatar} style={{ width: '50px', height: '50px', fontSize: '20px' }}>
+                    {insightData.user?.full_name?.[0] || insightData.user?.email?.[0]}
+                  </div>
+                  <div>
+                    <h2 className={styles.modalTitle}>{insightData.user?.full_name}</h2>
+                    <p className={styles.modalSubtitle}>{insightData.user?.email} • Account #{getMockAccNo(insightData.user?.id)}</p>
+                  </div>
+                </div>
+                <button className={styles.closeBtn} onClick={() => setShowInsightModal(false)}>&times;</button>
+             </div>
+             
+             <div className={styles.insightStats}>
+                <div className={styles.insStat}>
+                   <label>Current Balance</label>
+                   <span>₹{insightData.user?.balance.toLocaleString()}</span>
+                </div>
+                <div className={styles.insStat}>
+                   <label>Member Since</label>
+                   <span>{new Date(insightData.user?.created_at).toLocaleDateString()}</span>
+                </div>
+             </div>
+
+             <div className={styles.insightHistory}>
+                <h3>Transaction History</h3>
+                {insightLoading ? (
+                  <p className={styles.insLoading}>Fetching history...</p>
+                ) : (
+                  <div className={styles.insList}>
+                    {insightData.history.map(t => (
+                      <div key={t.id} className={styles.insItem}>
+                        <div className={styles.insInfo}>
+                           <span className={styles.insName}>
+                              {t.sender_id === insightData.user.id ? `To: ${t.receiver_email}` : `From: ${t.sender_email}`}
+                           </span>
+                           <span className={styles.insDate}>{new Date(t.created_at).toLocaleDateString()}</span>
+                        </div>
+                        <span className={t.sender_id === insightData.user.id ? styles.insAmountNeg : styles.insAmountPos}>
+                           {t.sender_id === insightData.user.id ? '-' : '+'}₹{t.amount.toLocaleString()}
+                        </span>
+                      </div>
+                    ))}
+                    {insightData.history.length === 0 && <p className={styles.noIns}>No transactions found for this member.</p>}
+                  </div>
+                )}
+             </div>
+             
+             <div className={styles.modalFooter}>
+                <button className={styles.submitBtn} onClick={() => setShowInsightModal(false)}>Close Insight</button>
+             </div>
           </div>
         </div>
       )}
