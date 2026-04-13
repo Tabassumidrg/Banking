@@ -62,6 +62,19 @@ class UserUpdate(BaseModel):
     balance: float
     role: str = "user"
 
+class KYCUpdate(BaseModel):
+    user_id: int
+    status: str
+    notes: str = ""
+
+class ServiceRequestCreate(BaseModel):
+    user_id: int
+    type: str
+    details: str
+
+class ServiceRequestUpdate(BaseModel):
+    status: str
+
 @app.get("/health")
 def health_check():
     return {"status": "ok", "message": "Nidhi Bank Backend is running - Version: 1.0.2-Verified"}
@@ -281,6 +294,114 @@ def get_audit_logs():
         """)
         logs = cur.fetchall()
         return logs
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+    finally:
+        cur.close()
+        conn.close()
+
+# --- New Operations Hub Endpoints ---
+
+@app.get("/api/admin/kyc/pending")
+def get_pending_kyc():
+    if not db_url:
+        raise HTTPException(status_code=500, detail="Database isn't configured")
+    try:
+        conn = psycopg2.connect(db_url)
+        cur = conn.cursor(cursor_factory=RealDictCursor)
+        cur.execute("SELECT id, full_name, email, mobile_number, kyc_status, created_at FROM users WHERE kyc_status = 'pending' AND role != 'admin' ORDER BY created_at DESC")
+        users = cur.fetchall()
+        return users
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+    finally:
+        cur.close()
+        conn.close()
+
+@app.put("/api/admin/kyc/update")
+def update_kyc_status(req: KYCUpdate):
+    if not db_url:
+        raise HTTPException(status_code=500, detail="Database isn't configured")
+    try:
+        conn = psycopg2.connect(db_url)
+        conn.autocommit = True
+        cur = conn.cursor(cursor_factory=RealDictCursor)
+        cur.execute(
+            "UPDATE users SET kyc_status = %s, kyc_notes = %s WHERE id = %s RETURNING id, email, kyc_status",
+            (req.status, req.notes, req.user_id)
+        )
+        updated = cur.fetchone()
+        if not updated:
+            raise HTTPException(status_code=404, detail="User not found")
+        log_event(None, "ADMIN_KYC_UPDATE", f"Admin updated KYC for user ID: {req.user_id} to {req.status}")
+        return {"message": f"KYC status updated to {req.status}", "user": updated}
+    except Exception as e:
+        if isinstance(e, HTTPException): raise e
+        raise HTTPException(status_code=500, detail=str(e))
+    finally:
+        cur.close()
+        conn.close()
+
+@app.get("/api/admin/service-requests")
+def list_all_service_requests():
+    if not db_url:
+        raise HTTPException(status_code=500, detail="Database isn't configured")
+    try:
+        conn = psycopg2.connect(db_url)
+        cur = conn.cursor(cursor_factory=RealDictCursor)
+        cur.execute("""
+            SELECT sr.*, u.full_name as user_name, u.email as user_email
+            FROM service_requests sr
+            JOIN users u ON sr.user_id = u.id
+            ORDER BY sr.created_at DESC
+        """)
+        requests = cur.fetchall()
+        return requests
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+    finally:
+        cur.close()
+        conn.close()
+
+@app.patch("/api/admin/service-requests/{req_id}")
+def update_service_request_status(req_id: int, req: ServiceRequestUpdate):
+    if not db_url:
+        raise HTTPException(status_code=500, detail="Database isn't configured")
+    try:
+        conn = psycopg2.connect(db_url)
+        conn.autocommit = True
+        cur = conn.cursor(cursor_factory=RealDictCursor)
+        cur.execute(
+            "UPDATE service_requests SET status = %s WHERE id = %s RETURNING id, status",
+            (req.status, req_id)
+        )
+        updated = cur.fetchone()
+        if not updated:
+            raise HTTPException(status_code=404, detail="Request not found")
+        log_event(None, "ADMIN_SERVICE_UPDATE", f"Admin updated service request {req_id} to {req.status}")
+        return {"message": "Service request status updated", "request": updated}
+    except Exception as e:
+        if isinstance(e, HTTPException): raise e
+        raise HTTPException(status_code=500, detail=str(e))
+    finally:
+        cur.close()
+        conn.close()
+
+@app.post("/api/user/service-requests")
+def create_service_request(req: ServiceRequestCreate):
+    if not db_url:
+        raise HTTPException(status_code=500, detail="Database isn't configured")
+    try:
+        conn = psycopg2.connect(db_url)
+        conn.autocommit = True
+        cur = conn.cursor(cursor_factory=RealDictCursor)
+        cur.execute(
+            "INSERT INTO service_requests (user_id, type, details) VALUES (%s, %s, %s) RETURNING id, type, status",
+            (req.user_id, req.type, req.details)
+        )
+        new_req = cur.fetchone()
+        log_event(req.user_id, "SERVICE_REQUEST_CREATED", f"User created {req.type} request")
+        return {"message": "Service request submitted successfully", "request": new_req}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
     finally:
