@@ -90,6 +90,7 @@ export default function SecurityPage() {
           { id: 3, event: 'Settings Change', device: 'Chrome / Windows', location: 'Mumbai, India', time: '1 day ago', status: 'success' }
         ]);
       }
+    };
     const init = async () => {
       const storedUser = localStorage.getItem('user');
       if (storedUser) {
