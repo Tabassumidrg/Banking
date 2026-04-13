@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import styles from './security.module.css';
 
 const EyeIcon = ({ visible }) => (
@@ -20,6 +21,7 @@ const EyeIcon = ({ visible }) => (
 );
 
 export default function SecurityPage() {
+  const router = useRouter();
   const [passwordData, setPasswordData] = useState({ current: '', new: '', confirm: '' });
   const [showPasswords, setShowPasswords] = useState({ current: false, new: false, confirm: false });
   const [is2FAEnabled, setIs2FAEnabled] = useState(false);
