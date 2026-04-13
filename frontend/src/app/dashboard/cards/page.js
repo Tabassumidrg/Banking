@@ -15,6 +15,12 @@ export default function CardsPage() {
       const parsedUser = JSON.parse(storedUser);
       setUser(parsedUser);
       
+      // Admin Redirect: Management should not have personal cards
+      if (parsedUser.role === 'admin' || parsedUser.email?.toLowerCase() === 'nidhi.sharma@nidhi.bank') {
+        router.push('/dashboard');
+        return;
+      }
+
       // Load saved cards or default
       const savedCards = localStorage.getItem(`cards_${parsedUser.id}`);
       if (savedCards) {

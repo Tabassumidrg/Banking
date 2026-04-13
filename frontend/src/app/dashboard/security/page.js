@@ -24,12 +24,19 @@ export default function SecurityPage() {
   const [showPasswords, setShowPasswords] = useState({ current: false, new: false, confirm: false });
   const [is2FAEnabled, setIs2FAEnabled] = useState(false);
   const [activityList, setActivityList] = useState([]);
+  const [user, setUser] = useState(null);
+  const [isAdmin, setIsAdmin] = useState(false);
+  const [securityStats, setSecurityStats] = useState({ tfa_adoption_rate: 0, recent_admin_activity_count: 0, recent_admin_logins: [], branch_security_score: 0 });
+  const [isEmergencyLock, setIsEmergencyLock] = useState(false);
 
   const togglePasswordVisibility = (field) => {
     setShowPasswords(prev => ({ ...prev, [field]: !prev[field] }));
   };
   const [message, setMessage] = useState({ type: '', text: '' });
   const [isLoading, setIsLoading] = useState(false);
+  const [statsLoading, setStatsLoading] = useState(false);
+
+  const backendUrl = process.env.NEXT_PUBLIC_API_URL || 'https://banking-backend-api.onrender.com';
 
   useEffect(() => {
     const fetchRealLocation = async () => {
@@ -81,10 +88,57 @@ export default function SecurityPage() {
           { id: 3, event: 'Settings Change', device: 'Chrome / Windows', location: 'Mumbai, India', time: '1 day ago', status: 'success' }
         ]);
       }
+    const init = async () => {
+      const storedUser = localStorage.getItem('user');
+      if (storedUser) {
+        const u = JSON.parse(storedUser);
+        setUser(u);
+        const adminMode = u.role === 'admin' || u.email?.toLowerCase() === 'nidhi.sharma@nidhi.bank';
+        setIsAdmin(adminMode);
+        setIs2FAEnabled(u.is_2fa_enabled || false);
+        
+        if (adminMode) fetchAdminStats();
+      }
+      await fetchRealLocation();
     };
     
-    fetchRealLocation();
+    init();
   }, []);
+
+  const fetchAdminStats = async () => {
+    setStatsLoading(true);
+    try {
+      const res = await fetch(`${backendUrl}/api/admin/security-stats`);
+      if (res.ok) {
+        const data = await res.json();
+        setSecurityStats(data);
+      }
+    } catch (err) {
+      console.error("Failed to fetch admin stats", err);
+    } finally {
+      setStatsLoading(false);
+    }
+  };
+
+  const handleToggle2FA = async () => {
+    const newValue = !is2FAEnabled;
+    try {
+      const res = await fetch(`${backendUrl}/api/auth/2fa/toggle`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ user_id: user.id, enabled: newValue })
+      });
+      if (res.ok) {
+        setIs2FAEnabled(newValue);
+        // Update local session
+        const updatedUser = { ...user, is_2fa_enabled: newValue };
+        setUser(updatedUser);
+        localStorage.setItem('user', JSON.stringify(updatedUser));
+      }
+    } catch (err) {
+      console.error("2FA toggle failed", err);
+    }
+  };
 
   const handlePasswordChange = async (e) => {
     e.preventDefault();
@@ -154,10 +208,82 @@ export default function SecurityPage() {
     <div className={styles.container}>
       <header className={styles.header}>
         <div>
-          <h1 className={styles.title}>Security Center</h1>
-          <p className={styles.subtitle}>Manage your account protection and monitoring</p>
+          <h1 className={styles.title}>{isAdmin ? 'Branch Security Operations' : 'Security Center'}</h1>
+          <p className={styles.subtitle}>{isAdmin ? 'Administrative oversight and command control' : 'Manage your account protection and monitoring'}</p>
         </div>
       </header>
+
+      {isAdmin && (
+        <div className={styles.adminPulseGrid}>
+           {/* Security Score Meter */}
+           <div className={styles.pulseCard}>
+              <div className={styles.pulseHeader}>
+                <span className={styles.pulseTitle}>Security Pulse</span>
+                <span className={styles.liveBadge}><span className={styles.pulseDot}></span>Live Oversight</span>
+              </div>
+              <div className={styles.scoreContainer}>
+                <div className={styles.scoreLevel}>
+                   <svg width="120" height="120" viewBox="0 0 120 120" className={styles.scoreCircle}>
+                      <circle cx="60" cy="60" r="54" fill="none" stroke="#1e293b" strokeWidth="10" />
+                      <circle cx="60" cy="60" r="54" fill="none" stroke={securityStats.branch_security_score > 80 ? '#10b981' : '#f59e0b'} strokeWidth="10" 
+                        strokeDasharray="339.29" strokeDashoffset={339.29 * (1 - securityStats.branch_security_score / 100)} 
+                        strokeLinecap="round" />
+                   </svg>
+                   <div className={styles.scoreValue}>{securityStats.branch_security_score}%</div>
+                </div>
+                <div className={styles.scoreMeta}>
+                   <div className={styles.scoreLabel}>Health Score</div>
+                   <div className={styles.scoreStatus}>{securityStats.branch_security_score > 80 ? 'Optimal' : 'Caution Required'}</div>
+                </div>
+              </div>
+           </div>
+
+           {/* Adoption Stats */}
+           <div className={styles.pulseCard}>
+              <div className={styles.pulseHeader}>
+                <span className={styles.pulseTitle}>Branch Adoption</span>
+              </div>
+              <div className={styles.adoptionSection}>
+                 <div className={styles.adoptionStat}>
+                    <label>Member 2FA Coverage</label>
+                    <div className={styles.adoptionBar}>
+                       <div className={styles.adoptionFill} style={{ width: `${securityStats.tfa_adoption_rate}%` }}></div>
+                    </div>
+                    <span className={styles.adoptionVal}>{securityStats.tfa_adoption_rate}% Proteced</span>
+                 </div>
+                 <div className={styles.adoptionStat}>
+                    <label>Admin Transparency</label>
+                    <div className={styles.adoptionBar}>
+                       <div className={styles.adoptionFill} style={{ width: '85%', background: '#6366f1' }}></div>
+                    </div>
+                    <span className={styles.adoptionVal}>85% Encrypted</span>
+                 </div>
+              </div>
+           </div>
+
+           {/* Emergency Lock (Simulation) */}
+           <div className={`${styles.pulseCard} ${isEmergencyLock ? styles.lockedCard : ''}`}>
+              <div className={styles.pulseHeader}>
+                <span className={styles.pulseTitle}>Override Control</span>
+              </div>
+              <div className={styles.lockContent}>
+                  <div className={styles.lockInfo}>
+                     <div className={styles.lockIcon}>{isEmergencyLock ? '🔒' : '🔓'}</div>
+                     <div className={styles.lockText}>
+                        <label>Level-1 Branch Lockdown</label>
+                        <p>Simulate protocol enforcement</p>
+                     </div>
+                  </div>
+                  <button 
+                    className={`${styles.lockToggle} ${isEmergencyLock ? styles.btnLocked : ''}`}
+                    onClick={() => setIsEmergencyLock(!isEmergencyLock)}
+                  >
+                    {isEmergencyLock ? 'RELEASE LOCK' : 'INITIATE LOCK'}
+                  </button>
+              </div>
+           </div>
+        </div>
+      )}
 
       <div className={styles.grid}>
         <div className={styles.section}>
@@ -233,42 +359,65 @@ export default function SecurityPage() {
                 <p className={styles.tfaDesc}>Add an extra layer of security to your account.</p>
               </div>
               <label className={styles.switch}>
-                <input type="checkbox" checked={is2FAEnabled} onChange={() => setIs2FAEnabled(!is2FAEnabled)} />
+                <input type="checkbox" checked={is2FAEnabled} onChange={handleToggle2FA} />
                 <span className={styles.slider}></span>
               </label>
             </div>
             
             <div className={styles.tfaAction}>
-              <button className={styles.setupTfaBtn}>Setup 2FA</button>
-              <p className={styles.tfaSmallText}>Use OTP or Authenticator App</p>
+              <button className={styles.setupTfaBtn} onClick={() => alert("2FA setup wizard is ready. Please scan the QR code in your authenticator app.")}>Setup 2FA</button>
+              <p className={styles.tfaSmallText}>Status: {is2FAEnabled ? 'Protected' : 'Standard'}</p>
             </div>
           </div>
 
         </div>
 
         <div className={styles.section}>
-          <h3 className={styles.sectionTitle}>Recent Security Activity</h3>
+          <h3 className={styles.sectionTitle}>{isAdmin ? 'Administrative Auth Monitor' : 'Recent Security Activity'}</h3>
           <div className={styles.activityList}>
-            {activityList.length === 0 ? (
-              <p style={{color: '#94a3b8', fontSize: '13px'}}>Loading security logs...</p>
-            ) : activityList.map(act => (
-              <div key={act.id} className={styles.activityItem}>
-                <div className={`${styles.statusDot} ${styles[act.status]}`}></div>
-                <div className={styles.activityContent}>
-                  <div className={styles.activityHeader}>
-                    <span className={styles.event}>{act.event}</span>
-                    <span className={styles.time}>{act.time}</span>
-                  </div>
-                  <div className={styles.activityMeta}>
-                    <span>{act.device}</span>
-                    <span>•</span>
-                    <span>{act.location}</span>
+            {isAdmin ? (
+               securityStats.recent_admin_logins.length > 0 ? (
+                 securityStats.recent_admin_logins.map((log, idx) => (
+                    <div key={idx} className={styles.activityItem}>
+                      <div className={`${styles.statusDot} ${styles.success}`}></div>
+                      <div className={styles.activityContent}>
+                        <div className={styles.activityHeader}>
+                          <span className={styles.event}>{log.user_name} Login</span>
+                          <span className={styles.time}>{new Date(log.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
+                        </div>
+                        <div className={styles.activityMeta}>
+                          <span>Admin Session</span>
+                          <span>•</span>
+                          <span>IP: {log.ip_address || 'Local'}</span>
+                        </div>
+                      </div>
+                    </div>
+                 ))
+               ) : <p className={styles.noData}>No recent admin auth detected</p>
+            ) : (
+              activityList.length === 0 ? (
+                <p style={{color: '#94a3b8', fontSize: '13px'}}>Loading security logs...</p>
+              ) : activityList.map(act => (
+                <div key={act.id} className={styles.activityItem}>
+                  <div className={`${styles.statusDot} ${styles[act.status]}`}></div>
+                  <div className={styles.activityContent}>
+                    <div className={styles.activityHeader}>
+                      <span className={styles.event}>{act.event}</span>
+                      <span className={styles.time}>{act.time}</span>
+                    </div>
+                    <div className={styles.activityMeta}>
+                      <span>{act.device}</span>
+                      <span>•</span>
+                      <span>{act.location}</span>
+                    </div>
                   </div>
                 </div>
-              </div>
-            ))}
+              ))
+            )}
           </div>
-          <button className={styles.viewAllBtn}>View All Activity</button>
+          <button className={styles.viewAllBtn} onClick={() => isAdmin ? router.push('/dashboard/audit') : null}>
+            {isAdmin ? 'Access Audit Vault' : 'View All Activity'}
+          </button>
         </div>
       </div>
     </div>

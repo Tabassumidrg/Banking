@@ -47,6 +47,10 @@ class PasswordChangeRequest(BaseModel):
     current_password: str
     new_password: str
 
+class TwoFactorToggleRequest(BaseModel):
+    user_id: int
+    enabled: bool
+
 class UserAdminCreate(BaseModel):
     full_name: str
     email: str
@@ -272,6 +276,60 @@ def get_branch_stats():
             "recent_transactions": recent_global_transactions,
             "high_value_alerts": high_value_alerts,
             "growth_trend": growth_raw
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+    finally:
+        cur.close()
+        conn.close()
+
+@app.get("/api/admin/security-stats")
+def get_security_stats():
+    if not db_url:
+        raise HTTPException(status_code=500, detail="Database isn't configured")
+    try:
+        conn = psycopg2.connect(db_url)
+        cur = conn.cursor(cursor_factory=RealDictCursor)
+        
+        # 1. 2FA Adoption Rate
+        cur.execute("SELECT COUNT(*) as total FROM users")
+        total_users = cur.fetchone()["total"]
+        cur.execute("SELECT COUNT(*) as enabled FROM users WHERE is_2fa_enabled = TRUE")
+        enabled_users = cur.fetchone()["enabled"]
+        adoption_rate = (enabled_users / total_users * 100) if total_users > 0 else 0
+        
+        # 2. Unusual Admin Activity (last 24h)
+        cur.execute("""
+            SELECT COUNT(*) as count FROM audit_logs 
+            WHERE action LIKE 'ADMIN_%' AND created_at >= CURRENT_TIMESTAMP - INTERVAL '24 hours'
+        """)
+        admin_activity = cur.fetchone()["count"]
+        
+        # 3. Recent Admin Logins (for session oversight)
+        cur.execute("""
+            SELECT a.created_at, u.full_name as user_name, u.email as user_email, a.ip_address
+            FROM audit_logs a
+            JOIN users u ON a.user_id = u.id
+            WHERE u.role = 'admin' AND a.action = 'LOGIN_SUCCESS'
+            ORDER BY a.created_at DESC LIMIT 5
+        """)
+        recent_admin_logins = cur.fetchall()
+        
+        # 4. Calculate a Mock Security Score (0-100)
+        # Factor 1: 2FA adoption (40%)
+        # Factor 2: Admin activity density (40%) - lower is safer for some actions
+        # Factor 3: High value alerts (20%) - derived from transactions
+        cur.execute("SELECT COUNT(*) as count FROM transactions WHERE amount >= 100000 AND created_at >= CURRENT_TIMESTAMP - INTERVAL '7 days'")
+        high_value_week = cur.fetchone()["count"]
+        
+        score = (adoption_rate * 0.4) + (max(0, 100 - admin_activity * 5) * 0.4) + (max(0, 100 - high_value_week * 10) * 0.2)
+        score = min(100, max(0, score))
+
+        return {
+            "tfa_adoption_rate": round(adoption_rate, 1),
+            "recent_admin_activity_count": admin_activity,
+            "recent_admin_logins": recent_admin_logins,
+            "branch_security_score": round(score, 1)
         }
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
@@ -626,10 +684,28 @@ def update_password(req: PasswordChangeRequest):
         
         return {"message": "Password updated successfully!"}
         
+@app.post("/api/auth/2fa/toggle")
+def toggle_2fa(req: TwoFactorToggleRequest):
+    if not db_url:
+        raise HTTPException(status_code=500, detail="Database isn't configured")
+    try:
+        conn = psycopg2.connect(db_url)
+        conn.autocommit = True
+        cur = conn.cursor()
+        cur.execute("UPDATE users SET is_2fa_enabled = %s WHERE id = %s RETURNING email", (req.enabled, req.user_id))
+        res = cur.fetchone()
+        if not res:
+            raise HTTPException(status_code=404, detail="User not found")
+        
+        status = "ENABLED" if req.enabled else "DISABLED"
+        log_event(req.user_id, "2FA_TOGGLE", f"Two-Factor Authentication {status} for {res[0]}")
+        return {"message": f"2FA {status} successfully", "enabled": req.enabled}
     except Exception as e:
-        if isinstance(e, HTTPException):
-            raise e
         raise HTTPException(status_code=500, detail=str(e))
     finally:
         cur.close()
         conn.close()
+
+if __name__ == "__main__":
+    import uvicorn
+    uvicorn.run(app, host="0.0.0.0", port=8000)
