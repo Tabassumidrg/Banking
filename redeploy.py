@@ -54,9 +54,15 @@ def get_files(directory):
     files_to_deploy = []
     max_size = 5 * 1024 * 1024
     for root, dirs, files in os.walk(directory):
-        if any(x in root for x in ["node_modules", ".next", ".git", ".vercel"]):
+        # Strictly exclude large or redundant directories
+        skip_dirs = ["node_modules", ".next", ".git", ".vercel", "__pycache__", "out", "public/assets"]
+        if any(x in root for x in skip_dirs):
             continue
+        
         for file in files:
+            # Only include code and necessary config files
+            if not any(file.endswith(ext) for ext in [".js", ".jsx", ".ts", ".tsx", ".json", ".css", ".html", ".ico", ".svg", ".png", ".jpg"]):
+                continue
             full_path = os.path.join(root, file)
             rel_path = os.path.relpath(full_path, directory).replace("\\", "/")
             try:
