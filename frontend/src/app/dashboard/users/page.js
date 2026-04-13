@@ -24,7 +24,7 @@ export default function UsersPage() {
   const [insightData, setInsightData] = useState({ user: null, history: [] });
   const [insightLoading, setInsightLoading] = useState(false);
 
-  const backendUrl = process.env.NEXT_PUBLIC_API_URL || 'https://banking-backend-api.onrender.com';
+  const backendUrl = process.env.NEXT_PUBLIC_API_URL || 'https://banking-backend-final.onrender.com';
 
   const router = useRouter();
 

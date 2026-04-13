@@ -30,7 +30,7 @@ export default function DashboardLayout({ children }) {
 
   const fetchBalance = async (userId) => {
     try {
-      const resp = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'https://banking-backend-api.onrender.com'}/api/dashboard/summary/${userId}`);
+      const resp = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'https://banking-backend-final.onrender.com'}/api/dashboard/summary/${userId}`);
       if (resp.ok) {
         const data = await resp.json();
         setBalance(data.balance);

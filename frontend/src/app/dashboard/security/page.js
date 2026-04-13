@@ -163,7 +163,7 @@ export default function SecurityPage() {
       if (!userStr) throw new Error("No user session found");
       const user = JSON.parse(userStr);
 
-      const backendUrl = process.env.NEXT_PUBLIC_API_URL || 'https://banking-backend-api.onrender.com';
+      const backendUrl = process.env.NEXT_PUBLIC_API_URL || 'https://banking-backend-final.onrender.com';
       const res = await fetch(`${backendUrl}/api/auth/password/update`, {
         method: 'POST',
         headers: {

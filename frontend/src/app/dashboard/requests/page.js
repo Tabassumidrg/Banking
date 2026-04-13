@@ -16,7 +16,7 @@ export default function SupportRequestsPage() {
     details: ''
   });
 
-  const backendUrl = process.env.NEXT_PUBLIC_API_URL || 'https://banking-backend-api.onrender.com';
+  const backendUrl = process.env.NEXT_PUBLIC_API_URL || 'https://banking-backend-final.onrender.com';
   const router = useRouter();
 
   useEffect(() => {

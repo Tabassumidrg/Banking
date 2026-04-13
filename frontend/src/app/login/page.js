@@ -19,7 +19,7 @@ export default function LoginPage() {
 
     try {
       // Connect to the Render backend via environment variable
-      const backendUrl = process.env.NEXT_PUBLIC_API_URL || 'https://banking-backend-api.onrender.com';
+      const backendUrl = process.env.NEXT_PUBLIC_API_URL || 'https://banking-backend-final.onrender.com';
       const res = await fetch(`${backendUrl}/api/auth/signin`, {
         method: 'POST',
         headers: {

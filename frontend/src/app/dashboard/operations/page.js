@@ -10,7 +10,7 @@ export default function OperationsPage() {
   const [serviceRequests, setServiceRequests] = useState([]);
   const [loading, setLoading] = useState(true);
   
-  const backendUrl = process.env.NEXT_PUBLIC_API_URL || 'https://banking-backend-api.onrender.com';
+  const backendUrl = process.env.NEXT_PUBLIC_API_URL || 'https://banking-backend-final.onrender.com';
   const router = useRouter();
 
   useEffect(() => {

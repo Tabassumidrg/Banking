@@ -29,7 +29,7 @@ function DashboardContent() {
   const [isTransferring, setIsTransferring] = useState(false);
   const [message, setMessage] = useState({ text: '', type: '' });
 
-  const backendUrl = process.env.NEXT_PUBLIC_API_URL || 'https://banking-backend-api.onrender.com';
+  const backendUrl = process.env.NEXT_PUBLIC_API_URL || 'https://banking-backend-final.onrender.com';
 
   useEffect(() => {
     const storedUser = localStorage.getItem('user');

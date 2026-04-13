@@ -8,7 +8,7 @@ export default function AuditLogsPage() {
   const [logs, setLogs] = useState([]);
   const [loading, setLoading] = useState(true);
   const router = useRouter();
-  const backendUrl = process.env.NEXT_PUBLIC_API_URL || 'https://banking-backend-api.onrender.com';
+  const backendUrl = process.env.NEXT_PUBLIC_API_URL || 'https://banking-backend-final.onrender.com';
 
   useEffect(() => {
     const storedUser = localStorage.getItem('user');

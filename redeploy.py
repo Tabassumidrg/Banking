@@ -26,7 +26,7 @@ def get_tokens():
 TOKENS = get_tokens()
 VERCEL_TOKEN = TOKENS.get("VERCEL")
 RENDER_TOKEN = TOKENS.get("RENDER")
-RENDER_SERVICE_ID = "srv-d7142kogjchc73983d80"
+RENDER_SERVICE_ID = "srv-d7ec8d1kh4rs73aa2h7g"
 FRONTEND_DIR = os.path.join(os.path.dirname(__file__), "frontend")
 
 def get_current_branch():
