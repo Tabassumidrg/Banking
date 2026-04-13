@@ -119,9 +119,10 @@ def deploy_render():
 
 def main():
     if run_git_sync():
-        print("[SUCCESS] Vercel deployment automatically triggered via GitHub push!")
+        print("[SUCCESS] GitHub push successful!")
+        deploy_vercel()
         deploy_render()
-        print("\n[INFO] All deployments initiated!")
+        print("\n[INFO] All deployments initiated and force-synced!")
 
 if __name__ == "__main__":
     main()
