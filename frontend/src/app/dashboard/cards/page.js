@@ -1,9 +1,11 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import styles from './cards.module.css';
 
 export default function CardsPage() {
+  const router = useRouter();
   const [user, setUser] = useState(null);
   const [cards, setCards] = useState([]);
   const [activeCardIndex, setActiveCardIndex] = useState(0);
@@ -16,7 +18,7 @@ export default function CardsPage() {
       setUser(parsedUser);
       
       // Admin Redirect: Management should not have personal cards
-      if (parsedUser.role === 'admin' || parsedUser.email?.toLowerCase() === 'nidhi.sharma@nidhi.bank') {
+      if (parsedUser.role === 'admin' || parsedUser.email?.toLowerCase() === 'nidhi.sharma@nidhi.bank' || parsedUser.email?.toLowerCase() === 'admin@nidhi.bank') {
         router.push('/dashboard');
         return;
       }
