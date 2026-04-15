@@ -64,7 +64,7 @@ def get_files(directory):
             if not any(file.endswith(ext) for ext in [".js", ".jsx", ".ts", ".tsx", ".json", ".css", ".html", ".ico", ".svg", ".png", ".jpg"]):
                 continue
             full_path = os.path.join(root, file)
-            rel_path = os.path.relpath(full_path, directory).replace("\\", "/")
+            rel_path = "frontend/" + os.path.relpath(full_path, directory).replace("\\", "/")
             try:
                 with open(full_path, "rb") as f:
                     content = f.read()
@@ -90,10 +90,7 @@ def deploy_vercel():
     payload = {
         "name": PROJECT_NAME,
         "files": files_data,
-        "projectSettings": {
-            "framework": "nextjs",
-            "rootDirectory": None
-        },
+        "projectSettings": {"framework": "nextjs"},
         "target": "production"
     }
     
