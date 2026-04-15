@@ -26,7 +26,7 @@ def get_tokens():
 TOKENS = get_tokens()
 VERCEL_TOKEN = TOKENS.get("VERCEL")
 RENDER_TOKEN = TOKENS.get("RENDER")
-RENDER_SERVICE_ID = "srv-d7ec8d1kh4rs73aa2h7g"
+RENDER_SERVICE_ID = "srv-cmqu22vqd2ns7380ksk0"
 FRONTEND_DIR = os.path.join(os.path.dirname(__file__), "frontend")
 
 def get_current_branch():
@@ -90,7 +90,10 @@ def deploy_vercel():
     payload = {
         "name": PROJECT_NAME,
         "files": files_data,
-        "projectSettings": {"framework": "nextjs"},
+        "projectSettings": {
+            "framework": "nextjs",
+            "rootDirectory": None
+        },
         "target": "production"
     }
     
